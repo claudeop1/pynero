@@ -6,26 +6,35 @@
 
 import time
 
+from test_framework.blocktools import create_empty_fork
 from test_framework.messages import (
+    CBlockHeader,
     CInv,
     MSG_BLOCK,
+    MSG_TYPE_MASK,
     MSG_WITNESS_FLAG,
+    msg_block,
     msg_getdata,
+    msg_headers,
     msg_ping,
 )
 from test_framework.p2p import (
     NetworkThread,
     P2PInterface,
+    p2p_lock,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
+    assert_greater_than,
     mine_large_block,
 )
 
 from test_framework.wallet import MiniWallet
 
 TIMEOUT_INTERVAL = 20 * 60
+# Time the peer is given to answer a ping after it delivered its last block.
+POST_BLOCK_PONG_GRACE = 60
 MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16
 PING_NONCE = 1
 # Number of blocks the peer asks for in a single getdata message, the maximum a peer
@@ -34,6 +43,10 @@ PING_NONCE = 1
 # from - otherwise the node would get through the entire request and answer the ping in
 # spite of the peer not reading.
 NUM_GETDATA = MAX_BLOCKS_IN_TRANSIT_PER_PEER
+# Number of blocks the node downloads from the peer in the second subtest. Needs to
+# be more than MAX_BLOCKS_IN_TRANSIT_PER_PEER, so that the peer keeps blocks in
+# flight while it slowly serves them one by one.
+NUM_DOWNLOAD_BLOCKS = 25
 
 
 class SlowPeer(P2PInterface):
@@ -44,6 +57,34 @@ class SlowPeer(P2PInterface):
 
     def on_block(self, message):
         self.blocks_received += 1
+
+
+class BusyPeer(P2PInterface):
+    """A peer that only serves a block when the test tells it to.
+
+    It never answers a ping, mimicking a peer that works off its getdata queue
+    before it gets around to processing the ping.
+    """
+    def __init__(self, blocks):
+        super().__init__()
+        self.blocks = {block.hash_int: block for block in blocks}
+        self.getdata_requests = []
+        self.blocks_served = 0
+
+    def on_getdata(self, message):
+        for inv in message.inv:
+            if (inv.type & MSG_TYPE_MASK) == MSG_BLOCK:
+                self.getdata_requests.append(inv.hash)
+
+    def on_ping(self, message):
+        pass
+
+    def serve_next_block(self):
+        """Serve the block that has been requested first and is still outstanding."""
+        with p2p_lock:
+            block = self.blocks[self.getdata_requests.pop(0)]
+        self.send_without_ping(msg_block(block))
+        self.blocks_served += 1
 
 
 class PingIBDTest(BitcoinTestFramework):
@@ -114,9 +155,60 @@ class PingIBDTest(BitcoinTestFramework):
         peer.wait_until(lambda: "pong" in peer.last_message, timeout=120)
         assert_equal(peer.last_message["pong"].nonce, PING_NONCE)
         assert_equal(peer.blocks_received, NUM_GETDATA)
+        node.disconnect_p2ps()
+
+    def test_ping_timeout_ibd(self):
+        self.log.info("Check that a peer isn't disconnected over a ping while it is serving blocks.")
+        # The test framework uses a huge -peertimeout by default, which would disable the
+        # ping timeout.
+        self.restart_node(0, extra_args=["-peertimeout=1"])
+        node = self.nodes[0]
+        node.setmocktime(int(time.time()))
+
+        self.log.info("Prepare the blocks that the node will download from the peer")
+        blocks = create_empty_fork(node, NUM_DOWNLOAD_BLOCKS)
+
+        start_height = node.getblockcount()
+        peer = node.add_outbound_p2p_connection(BusyPeer(blocks), p2p_idx=0)
+        # The node sends an initial ping as soon as it is connected. Since the peer doesn't answer it,
+        # it would time out after TIMEOUT_INTERVAL.
+        peer.wait_until(lambda: "ping" in peer.last_message)
+        ping_start = node.mocktime
+
+        self.log.info("Announce the blocks and wait for the node to request them")
+        peer.send_and_ping(msg_headers([CBlockHeader(block) for block in blocks]))
+        self.wait_until(lambda: len(node.getpeerinfo()[0]["inflight"]) == MAX_BLOCKS_IN_TRANSIT_PER_PEER)
+
+        self.log.info(f"Send the blocks slowly, until the timeout of {TIMEOUT_INTERVAL}s is exceeded.")
+        with node.assert_debug_log([], unexpected_msgs=["ping timeout"]):
+            while node.mocktime <= ping_start + TIMEOUT_INTERVAL:
+                node.bumpmocktime(TIMEOUT_INTERVAL // 5)
+                peer.serve_next_block()
+                self.wait_until(lambda: node.getblockcount() == start_height + peer.blocks_served)
+                assert peer.is_connected
+        assert_greater_than(node.getpeerinfo()[0]["pingwait"], TIMEOUT_INTERVAL)
+
+        self.log.info("Serve the remaining blocks, so that nothing is in flight anymore")
+        while peer.blocks_served < NUM_DOWNLOAD_BLOCKS:
+            # The node only requests the next block once it processed an earlier one.
+            peer.wait_until(lambda: len(peer.getdata_requests) > 0)
+            peer.serve_next_block()
+        self.wait_until(lambda: node.getblockcount() == start_height + NUM_DOWNLOAD_BLOCKS)
+        assert_equal(node.getpeerinfo()[0]["inflight"], [])
+
+        self.log.info("Check that the peer still gets a grace period to answer the ping")
+        node.bumpmocktime(POST_BLOCK_PONG_GRACE // 2)
+        peer.sync_with_ping()
+        assert peer.is_connected
+
+        self.log.info("Check that the ping timeout applies once the grace period is over")
+        with node.assert_debug_log(expected_msgs=["ping timeout"]):
+            node.bumpmocktime(POST_BLOCK_PONG_GRACE)
+            peer.wait_for_disconnect()
 
     def run_test(self):
         self.test_pong_delay_ibd()
+        self.test_ping_timeout_ibd()
 
 
 if __name__ == '__main__':
