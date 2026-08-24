@@ -1098,7 +1098,7 @@ public:
 
     //! Return the extended private key of the HD key to derive from. Without
     //! hdkey, unused(KEY) descriptors are preferred over active ones.
-    util::Result<CExtKey> SelectHDKey(const std::optional<CExtPubKey>& hdkey) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    util::Expected<CExtKey, WalletError> SelectHDKey(const std::optional<CExtPubKey>& hdkey) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     //! Disconnect chain notifications and wait for all notifications to be processed
     void DisconnectChainNotifications();

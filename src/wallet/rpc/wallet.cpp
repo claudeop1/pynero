@@ -1014,9 +1014,12 @@ RPCMethod derivehdkey()
                 selected_hdkey = xpub;
             }
 
-            util::Result<CExtKey> xprv{wallet->SelectHDKey(selected_hdkey)};
+            util::Expected<CExtKey, WalletError> xprv{wallet->SelectHDKey(selected_hdkey)};
             if (!xprv) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, util::ErrorString(xprv).original);
+                if (xprv.error().code == WalletErrorCode::UnlockNeeded) {
+                    throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, xprv.error().message.original);
+                }
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, xprv.error().message.original);
             }
 
             std::optional<std::pair<CExtKey, KeyOriginInfo>> child{DeriveExtKey(*xprv, path)};
