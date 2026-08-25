@@ -5,8 +5,8 @@
 
 #ifndef BITCOIN_TEST_SCRIPTNUM10_H
 #define BITCOIN_TEST_SCRIPTNUM10_H
+#include <util/check.h>
 
-#include <cassert>
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
