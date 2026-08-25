@@ -18,7 +18,7 @@
 static void BenchGetMappedAS(benchmark::Bench& bench, std::span<const CNetAddr> addrs, bool check = true)
 {
     std::span<const std::byte> asmap{node::data::ip_asn};
-    assert(!asmap.empty() && CheckStandardAsmap(asmap));
+    Assert(!asmap.empty() && CheckStandardAsmap(asmap));
     auto netgroupman{NetGroupManager::WithEmbeddedAsmap(asmap)};
 
     bench.batch(addrs.size()).run([&] {
@@ -26,7 +26,7 @@ static void BenchGetMappedAS(benchmark::Bench& bench, std::span<const CNetAddr> 
             // The embedded ASMap file might change over time and cause some
             // addresses to become unmapped. We check the mapping to ensure
             // the addresses are actually mapped.
-            assert((netgroupman.GetMappedAS(addr) > 0) == check);
+            Assert((netgroupman.GetMappedAS(addr) > 0) == check);
         }
     });
 }

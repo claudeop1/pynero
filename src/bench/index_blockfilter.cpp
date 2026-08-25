@@ -41,18 +41,18 @@ static void BlockFilterIndexSync(benchmark::Bench& bench)
         test_setup->CreateAndProcessBlock(noTxns, script);
         test_setup->m_clock += 1s;
     }
-    assert(WITH_LOCK(::cs_main, return test_setup->m_node.chainman->ActiveHeight() == CHAIN_SIZE));
+    Assert(WITH_LOCK(::cs_main, return test_setup->m_node.chainman->ActiveHeight() == CHAIN_SIZE));
 
     bench.minEpochIterations(5).run([&] {
         BlockFilterIndex filter_index(interfaces::MakeChain(test_setup->m_node), BlockFilterType::BASIC,
                                       /*n_cache_size=*/0, /*f_memory=*/false, /*f_wipe=*/true);
-        assert(filter_index.Init());
-        assert(!filter_index.BlockUntilSyncedToCurrentChain());
+        Assert(filter_index.Init());
+        Assert(!filter_index.BlockUntilSyncedToCurrentChain());
         filter_index.Sync();
 
         IndexSummary summary = filter_index.GetSummary();
-        assert(summary.synced);
-        assert(summary.best_block_hash == WITH_LOCK(::cs_main, return test_setup->m_node.chainman->ActiveTip()->GetBlockHash()));
+        Assert(summary.synced);
+        Assert(summary.best_block_hash == WITH_LOCK(::cs_main, return test_setup->m_node.chainman->ActiveTip()->GetBlockHash()));
 
         // Shutdown sequence (c.f. Shutdown() in init.cpp)
         filter_index.Stop();

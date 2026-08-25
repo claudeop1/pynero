@@ -24,7 +24,7 @@ FUZZ_TARGET(parse_hd_keypath)
     for (const bool apostrophe : {false, true}) {
         std::vector<uint32_t> roundtrip;
         const std::string written{WriteHDKeypath(random_keypath, apostrophe)};
-        assert(ParseHDKeypath(written, roundtrip));
-        assert(roundtrip == random_keypath);
+        Assert(ParseHDKeypath(written, roundtrip));
+        Assert(roundtrip == random_keypath);
     }
 }

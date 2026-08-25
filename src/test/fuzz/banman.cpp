@@ -52,7 +52,7 @@ FUZZ_TARGET(banman, .init = initialize_banman)
     const bool start_with_corrupted_banlist{fuzzed_data_provider.ConsumeBool()};
     bool force_read_and_write_to_err{false};
     if (start_with_corrupted_banlist) {
-        assert(WriteBinaryFile(banlist_file + ".json",
+        Assert(WriteBinaryFile(banlist_file + ".json",
                                fuzzed_data_provider.ConsumeRandomLengthString()));
     } else {
         force_read_and_write_to_err = fuzzed_data_provider.ConsumeBool();
@@ -132,7 +132,7 @@ FUZZ_TARGET(banman, .init = initialize_banman)
             banmap_t banmap_read;
             ban_man_read.GetBanned(banmap_read);
             if (!contains_invalid) {
-                assert(banmap == banmap_read);
+                Assert(banmap == banmap_read);
             }
         }
     }

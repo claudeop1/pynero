@@ -30,12 +30,12 @@ static constexpr int64_t APPROX_WEIGHT_PER_INPUT{200};
 static CTransactionRef MakeTransactionBulkedTo(unsigned int num_inputs, int64_t target_weight, FastRandomContext& det_rand)
 {
     CMutableTransaction tx;
-    assert(target_weight >= 40 + APPROX_WEIGHT_PER_INPUT);
+    Assert(target_weight >= 40 + APPROX_WEIGHT_PER_INPUT);
     if (!num_inputs) num_inputs = (target_weight - 40) / APPROX_WEIGHT_PER_INPUT;
     for (unsigned int i = 0; i < num_inputs; ++i) {
         tx.vin.emplace_back(Txid::FromUint256(det_rand.rand256()), 0);
     }
-    assert(GetTransactionWeight(*MakeTransactionRef(tx)) <= target_weight);
+    Assert(GetTransactionWeight(*MakeTransactionRef(tx)) <= target_weight);
 
     tx.vout.resize(1);
 
@@ -54,7 +54,7 @@ static CTransactionRef MakeTransactionSpendingUpTo(const std::vector<CTxIn>& inp
         if (GetTransactionWeight(*MakeTransactionRef(tx)) + APPROX_WEIGHT_PER_INPUT >= weight_limit) break;
         tx.vin.emplace_back(inputs.at(i % inputs.size()));
     }
-    assert(tx.vin.size() > 0);
+    Assert(tx.vin.size() > 0);
     return MakeTransactionRef(tx);
 }
 static void OrphanageSinglePeerEviction(benchmark::Bench& bench)
@@ -71,7 +71,7 @@ static void OrphanageSinglePeerEviction(benchmark::Bench& bench)
         tiny_txs.emplace_back(MakeTransactionBulkedTo(1, TINY_TX_WEIGHT, det_rand));
     }
     auto large_tx = MakeTransactionBulkedTo(1, MAX_STANDARD_TX_WEIGHT, det_rand);
-    assert(GetTransactionWeight(*large_tx) <= MAX_STANDARD_TX_WEIGHT);
+    Assert(GetTransactionWeight(*large_tx) <= MAX_STANDARD_TX_WEIGHT);
 
     const auto orphanage{node::MakeTxOrphanage(/*max_global_latency_score=*/node::DEFAULT_MAX_ORPHANAGE_LATENCY_SCORE, /*reserved_peer_usage=*/node::DEFAULT_RESERVED_ORPHAN_WEIGHT_PER_PEER)};
 
@@ -86,22 +86,22 @@ static void OrphanageSinglePeerEviction(benchmark::Bench& bench)
         total_weight_to_add += GetTransactionWeight(*tx);
         if (total_weight_to_add > orphanage->MaxGlobalUsage()) break;
 
-        assert(orphanage->AddTx(tx, peer));
+        Assert(orphanage->AddTx(tx, peer));
 
         // Sanity check: we should always be exiting at the point of hitting the weight limit.
-        assert(txindex < NUM_TINY_TRANSACTIONS - 1);
+        Assert(txindex < NUM_TINY_TRANSACTIONS - 1);
     }
 
     // In the real world, we always trim after each new tx.
     // If we need to trim already, that means the benchmark is not representative of what LimitOrphans may do in a single call.
-    assert(orphanage->TotalOrphanUsage() <= orphanage->MaxGlobalUsage());
-    assert(orphanage->TotalLatencyScore() <= orphanage->MaxGlobalLatencyScore());
-    assert(orphanage->TotalOrphanUsage() + TINY_TX_WEIGHT > orphanage->MaxGlobalUsage());
+    Assert(orphanage->TotalOrphanUsage() <= orphanage->MaxGlobalUsage());
+    Assert(orphanage->TotalLatencyScore() <= orphanage->MaxGlobalLatencyScore());
+    Assert(orphanage->TotalOrphanUsage() + TINY_TX_WEIGHT > orphanage->MaxGlobalUsage());
 
     bench.epochs(1).epochIterations(1).run([&]() NO_THREAD_SAFETY_ANALYSIS {
         // Lastly, add the large transaction.
         const auto num_announcements_before_trim{orphanage->CountAnnouncements()};
-        assert(orphanage->AddTx(large_tx, peer));
+        Assert(orphanage->AddTx(large_tx, peer));
 
         // If there are multiple peers, note that they all have the same DoS score. We will evict only 1 item at a time for each new DoSiest peer.
         const auto num_announcements_after_trim{orphanage->CountAnnouncements()};
@@ -109,7 +109,7 @@ static void OrphanageSinglePeerEviction(benchmark::Bench& bench)
 
         // The number of evictions is the same regardless of the number of peers. In both cases, we can exceed the
         // usage limit using 1 maximally-sized transaction.
-        assert(num_evicted == MAX_STANDARD_TX_WEIGHT / TINY_TX_WEIGHT);
+        Assert(num_evicted == MAX_STANDARD_TX_WEIGHT / TINY_TX_WEIGHT);
     });
 }
 static void OrphanageMultiPeerEviction(benchmark::Bench& bench)
@@ -170,24 +170,24 @@ static void OrphanageMultiPeerEviction(benchmark::Bench& bench)
         orphanage->AddTx(reserved_last_tx, peer);
     }
 
-    assert(orphanage->CountAnnouncements() == NUM_PEERS * NUM_UNIQUE_TXNS);
+    Assert(orphanage->CountAnnouncements() == NUM_PEERS * NUM_UNIQUE_TXNS);
     const auto total_usage{orphanage->TotalOrphanUsage()};
     const auto max_usage{orphanage->MaxGlobalUsage()};
-    assert(max_usage - total_usage <= LARGE_TX_WEIGHT);
-    assert(orphanage->TotalLatencyScore() <= orphanage->MaxGlobalLatencyScore());
+    Assert(max_usage - total_usage <= LARGE_TX_WEIGHT);
+    Assert(orphanage->TotalLatencyScore() <= orphanage->MaxGlobalLatencyScore());
 
     auto last_tx = MakeTransactionBulkedTo(0, max_usage - total_usage + 1, det_rand);
 
     bench.epochs(1).epochIterations(1).run([&]() NO_THREAD_SAFETY_ANALYSIS {
         const auto num_announcements_before_trim{orphanage->CountAnnouncements()};
         // There is a small gap between the total usage and the max usage. Add a transaction to fill it.
-        assert(orphanage->AddTx(last_tx, 0));
+        Assert(orphanage->AddTx(last_tx, 0));
 
         // If there are multiple peers, note that they all have the same DoS score. We will evict only 1 item at a time for each new DoSiest peer.
         const auto num_evicted{num_announcements_before_trim - orphanage->CountAnnouncements() + 1};
         // The trimming happens as a round robin. In the first NUM_UNIQUE_TXNS - 2 rounds for each peer, only duplicates are evicted.
         // Once each peer has 2 transactions left, it's possible to select a peer whose oldest transaction is unique.
-        assert(num_evicted >= (NUM_UNIQUE_TXNS - 2) * NUM_PEERS);
+        Assert(num_evicted >= (NUM_UNIQUE_TXNS - 2) * NUM_PEERS);
     });
 }
 
@@ -224,9 +224,9 @@ static void OrphanageEraseAll(benchmark::Bench& bench, bool block_or_disconnect)
             const int64_t weight_limit{std::min<int64_t>(weight_left_for_peer, MAX_STANDARD_TX_WEIGHT)};
             auto ptx = MakeTransactionSpendingUpTo(block_tx->vin, /*start_input=*/start_input, /*num_inputs=*/INPUTS_PER_TX, /*weight_limit=*/weight_limit);
 
-            assert(GetTransactionWeight(*ptx) <= MAX_STANDARD_TX_WEIGHT);
-            assert(!orphanage->HaveTx(ptx->GetWitnessHash()));
-            assert(orphanage->AddTx(ptx, peer));
+            Assert(GetTransactionWeight(*ptx) <= MAX_STANDARD_TX_WEIGHT);
+            Assert(!orphanage->HaveTx(ptx->GetWitnessHash()));
+            Assert(orphanage->AddTx(ptx, peer));
 
             weight_left_for_peer -= GetTransactionWeight(*ptx);
             if (weight_left_for_peer < TINY_TX_WEIGHT * 2) break;
@@ -234,26 +234,26 @@ static void OrphanageEraseAll(benchmark::Bench& bench, bool block_or_disconnect)
     }
 
     // If these fail, it means this benchmark is not realistic because the orphanage would have been trimmed already.
-    assert(orphanage->TotalLatencyScore() <= orphanage->MaxGlobalLatencyScore());
-    assert(orphanage->TotalOrphanUsage() <= orphanage->MaxGlobalUsage());
+    Assert(orphanage->TotalLatencyScore() <= orphanage->MaxGlobalLatencyScore());
+    Assert(orphanage->TotalOrphanUsage() <= orphanage->MaxGlobalUsage());
 
     // 3000 announcements (and unique transactions) in the orphanage.
     // They spend a total of 27,000 inputs (20,000 unique ones)
-    assert(orphanage->CountAnnouncements() == NUM_PEERS * NUM_TXNS_PER_PEER);
-    assert(orphanage->TotalLatencyScore() == orphanage->CountAnnouncements());
+    Assert(orphanage->CountAnnouncements() == NUM_PEERS * NUM_TXNS_PER_PEER);
+    Assert(orphanage->TotalLatencyScore() == orphanage->CountAnnouncements());
 
     bench.epochs(1).epochIterations(1).run([&]() NO_THREAD_SAFETY_ANALYSIS {
         if (block_or_disconnect) {
             // Erase everything through EraseForBlock.
             // Every tx conflicts with this block.
             orphanage->EraseForBlock(block);
-            assert(orphanage->CountAnnouncements() == 0);
+            Assert(orphanage->CountAnnouncements() == 0);
         } else {
             // Erase everything through EraseForPeer.
             for (NodeId peer{0}; peer < NUM_PEERS; ++peer) {
                 orphanage->EraseForPeer(peer);
             }
-            assert(orphanage->CountAnnouncements() == 0);
+            Assert(orphanage->CountAnnouncements() == 0);
         }
     });
 }

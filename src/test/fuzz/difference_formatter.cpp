@@ -20,11 +20,11 @@ FUZZ_TARGET(difference_formatter)
     try {
         BlockTransactionsRequest test_container;
         ss >> test_container;
-        assert(test_container.blockhash == block_hash);
+        Assert(test_container.blockhash == block_hash);
 
         // Invariant: strictly monotonic increasing (no duplicates allowed)
         for (size_t i = 1; i < test_container.indexes.size(); ++i) {
-            assert(test_container.indexes[i] > test_container.indexes[i-1]);
+            Assert(test_container.indexes[i] > test_container.indexes[i-1]);
         }
 
     } catch (const std::ios_base::failure&) {

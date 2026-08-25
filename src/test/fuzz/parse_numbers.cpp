@@ -27,29 +27,29 @@ FUZZ_TARGET(parse_numbers)
         // Dont check any values, just that each success result must fit into
         // the one with the largest bit-width.
         if (i8) {
-            assert(i8 == i64);
+            Assert(i8 == i64);
         }
         if (u8) {
-            assert(u8 == u64);
+            Assert(u8 == u64);
         }
         if (i16) {
-            assert(i16 == i64);
+            Assert(i16 == i64);
         }
         if (u16) {
-            assert(u16 == u64);
+            Assert(u16 == u64);
         }
         if (i32) {
-            assert(i32 == i64);
+            Assert(i32 == i64);
         }
         if (u32) {
-            assert(u32 == u64);
+            Assert(u32 == u64);
         }
         constexpr auto digits{"0123456789"};
         if (i64) {
-            assert(util::RemovePrefixView(random_string, "-").find_first_not_of(digits) == std::string::npos);
+            Assert(util::RemovePrefixView(random_string, "-").find_first_not_of(digits) == std::string::npos);
         }
         if (u64) {
-            assert(random_string.find_first_not_of(digits) == std::string::npos);
+            Assert(random_string.find_first_not_of(digits) == std::string::npos);
         }
     }
 

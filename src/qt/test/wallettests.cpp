@@ -89,7 +89,7 @@ Txid SendCoins(CWallet& wallet, SendCoinsDialog& sendCoinsDialog, const CTxDesti
     }));
     ConfirmSend(/*text=*/nullptr, confirm_type);
     bool invoked = QMetaObject::invokeMethod(&sendCoinsDialog, "sendButtonClicked", Q_ARG(bool, false));
-    assert(invoked);
+    Assert(invoked);
     return txid;
 }
 
@@ -207,8 +207,8 @@ std::shared_ptr<CWallet> SetupDescriptorsWallet(interfaces::Node& node, TestChai
         key_str = EncodeSecret(test.coinbaseKey);
     }
     auto descs = Parse("combo(" + key_str + ")", provider, error, /* require_checksum=*/ false);
-    assert(!descs.empty());
-    assert(descs.size() == 1);
+    Assert(!descs.empty());
+    Assert(descs.size() == 1);
     auto& desc = descs.at(0);
     WalletDescriptor w_desc(std::move(desc), 0, 0, 1, 1);
     Assert(wallet->AddWalletDescriptor(w_desc, provider, "", false));

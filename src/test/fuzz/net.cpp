@@ -55,7 +55,7 @@ FUZZ_TARGET(net, .init = initialize_net)
             },
             [&] {
                 const CNode* add_ref_node = node.AddRef();
-                assert(add_ref_node == &node);
+                Assert(add_ref_node == &node);
             },
             [&] {
                 if (node.GetRefCount() > 0) {
@@ -73,7 +73,7 @@ FUZZ_TARGET(net, .init = initialize_net)
     (void)node.GetId();
     (void)node.GetLocalNonce();
     const int ref_count = node.GetRefCount();
-    assert(ref_count >= 0);
+    Assert(ref_count >= 0);
     (void)node.GetCommonVersion();
 
     const NetPermissionFlags net_permission_flags = ConsumeWeakEnum(fuzzed_data_provider, ALL_NET_PERMISSION_FLAGS);
@@ -101,9 +101,9 @@ FUZZ_TARGET(local_address, .init = initialize_net)
             [&] {
                 const bool added{AddLocal(service, fuzzed_data_provider.ConsumeIntegralInRange<int>(0, LOCAL_MAX - 1))};
                 if (!added) return;
-                assert(service.IsRoutable());
-                assert(IsLocal(service));
-                assert(SeenLocal(service));
+                Assert(service.IsRoutable());
+                Assert(IsLocal(service));
+                Assert(SeenLocal(service));
             },
             [&] {
                 (void)RemoveLocal(service);

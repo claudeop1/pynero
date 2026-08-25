@@ -90,7 +90,7 @@ void DeserializeFromFuzzingInput(FuzzBufferType buffer, T&& obj)
     } catch (const std::ios_base::failure&) {
         throw invalid_fuzzing_input_exception();
     }
-    assert(buffer.empty() || !Serialize(obj).empty());
+    Assert(buffer.empty() || !Serialize(obj).empty());
 }
 
 template <typename T>
@@ -99,7 +99,7 @@ T DeserializeConstructFromFuzzingInput(FuzzBufferType buffer)
     try {
         SpanReader reader{buffer};
         T obj(deserialize, reader);
-        assert(buffer.empty() || !Serialize(obj).empty());
+        Assert(buffer.empty() || !Serialize(obj).empty());
         return obj;
     } catch (const std::ios_base::failure&) {
         throw invalid_fuzzing_input_exception();
@@ -109,12 +109,12 @@ T DeserializeConstructFromFuzzingInput(FuzzBufferType buffer)
 template <typename T, typename P>
 void AssertEqualAfterSerializeDeserialize(const T& obj, const P& params)
 {
-    assert(Deserialize<T>(Serialize(params(obj)), params) == obj);
+    Assert(Deserialize<T>(Serialize(params(obj)), params) == obj);
 }
 template <typename T>
 void AssertEqualAfterSerializeDeserialize(const T& obj)
 {
-    assert(Deserialize<T>(Serialize(obj)) == obj);
+    Assert(Deserialize<T>(Serialize(obj)) == obj);
 }
 
 } // namespace
@@ -246,7 +246,7 @@ FUZZ_TARGET(service_deserialize, .init = initialize_deserialize)
     }
     AssertEqualAfterSerializeDeserialize(s, CNetAddr::V2);
     if (ser_params.enc == CNetAddr::Encoding::V1) {
-        assert(s.IsAddrV1Compatible());
+        Assert(s.IsAddrV1Compatible());
     }
 }
 FUZZ_TARGET_DESERIALIZE(messageheader_deserialize, {

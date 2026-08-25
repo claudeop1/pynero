@@ -112,23 +112,23 @@ public:
         auto chunk_size_remaining = chunk_it->size;
         for (const auto& free_block : free_blocks) {
             if (chunk_size_remaining == 0) {
-                assert(chunk_it != chunks.end());
+                Assert(chunk_it != chunks.end());
                 ++chunk_it;
-                assert(chunk_it != chunks.end());
+                Assert(chunk_it != chunks.end());
                 chunk_ptr_remaining = chunk_it->ptr;
                 chunk_size_remaining = chunk_it->size;
             }
-            assert(free_block.ptr == chunk_ptr_remaining);                   // ensure addresses match
-            assert(free_block.size <= chunk_size_remaining);                 // ensure no overflow
-            assert((free_block.ptr & (resource.ELEM_ALIGN_BYTES - 1)) == 0); // ensure correct alignment
+            Assert(free_block.ptr == chunk_ptr_remaining);                   // ensure addresses match
+            Assert(free_block.size <= chunk_size_remaining);                 // ensure no overflow
+            Assert((free_block.ptr & (resource.ELEM_ALIGN_BYTES - 1)) == 0); // ensure correct alignment
             chunk_ptr_remaining += free_block.size;
             chunk_size_remaining -= free_block.size;
         }
         // ensure we are at the end of the chunks
-        assert(chunk_ptr_remaining == chunk_it->ptr + chunk_it->size);
+        Assert(chunk_ptr_remaining == chunk_it->ptr + chunk_it->size);
         ++chunk_it;
-        assert(chunk_it == chunks.end());
-        assert(chunk_size_remaining == 0);
+        Assert(chunk_it == chunks.end());
+        Assert(chunk_size_remaining == 0);
     }
 };
 

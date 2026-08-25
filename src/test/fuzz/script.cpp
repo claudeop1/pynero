@@ -46,35 +46,35 @@ FUZZ_TARGET(script, .init = initialize_script)
     if (CompressScript(script, compressed)) {
         const unsigned int size = compressed[0];
         compressed.erase(compressed.begin());
-        assert(size <= 5);
+        Assert(size <= 5);
         CScript decompressed_script;
         const bool ok = DecompressScript(decompressed_script, size, compressed);
-        assert(ok);
-        assert(script == decompressed_script);
+        Assert(ok);
+        Assert(script == decompressed_script);
     }
 
     TxoutType which_type;
     bool is_standard_ret = IsStandard(script, which_type);
     if (!is_standard_ret) {
-        assert(which_type == TxoutType::NONSTANDARD ||
+        Assert(which_type == TxoutType::NONSTANDARD ||
                which_type == TxoutType::NULL_DATA ||
                which_type == TxoutType::MULTISIG);
     }
     if (which_type == TxoutType::NONSTANDARD) {
-        assert(!is_standard_ret);
+        Assert(!is_standard_ret);
     }
     if (which_type == TxoutType::NULL_DATA) {
-        assert(script.IsUnspendable());
+        Assert(script.IsUnspendable());
     }
     if (script.IsUnspendable()) {
-        assert(which_type == TxoutType::NULL_DATA ||
+        Assert(which_type == TxoutType::NULL_DATA ||
                which_type == TxoutType::NONSTANDARD);
     }
 
     CTxDestination address;
     bool extract_destination_ret = ExtractDestination(script, address);
     if (!extract_destination_ret) {
-        assert(which_type == TxoutType::PUBKEY ||
+        Assert(which_type == TxoutType::PUBKEY ||
                which_type == TxoutType::NONSTANDARD ||
                which_type == TxoutType::NULL_DATA ||
                which_type == TxoutType::MULTISIG);
@@ -82,7 +82,7 @@ FUZZ_TARGET(script, .init = initialize_script)
     if (which_type == TxoutType::NONSTANDARD ||
         which_type == TxoutType::NULL_DATA ||
         which_type == TxoutType::MULTISIG) {
-        assert(!extract_destination_ret);
+        Assert(!extract_destination_ret);
     }
 
     const FlatSigningProvider signing_provider;

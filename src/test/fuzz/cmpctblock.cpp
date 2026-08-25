@@ -344,7 +344,7 @@ FUZZ_TARGET(cmpctblock, .init = initialize_cmpctblock)
                     ++num_erased;
                 }
 
-                assert(cmpctblock.PrefilledTxCount() + cmpctblock.ShortTxIDCount() == num_txs);
+                Assert(cmpctblock.PrefilledTxCount() + cmpctblock.ShortTxIDCount() == num_txs);
 
                 CBlockHeaderAndShortTxIDs base_cmpctblock = cmpctblock;
                 net_msg = NetMsg::Make(NetMsgType::CMPCTBLOCK, base_cmpctblock);
@@ -447,15 +447,15 @@ FUZZ_TARGET(cmpctblock, .init = initialize_cmpctblock)
                 // HB peers cannot be feelers or other "special" connections (besides addr-fetch).
                 CNode* hb_peer = peers[stat.nodeid];
                 if (!hb_peer->fDisconnect) num_hb += 1;
-                assert(hb_peer->IsInboundConn() || hb_peer->IsOutboundOrBlockRelayConn() || hb_peer->IsManualConn() || hb_peer->IsAddrFetchConn());
+                Assert(hb_peer->IsInboundConn() || hb_peer->IsOutboundOrBlockRelayConn() || hb_peer->IsManualConn() || hb_peer->IsAddrFetchConn());
             }
         }
-        assert(num_hb <= 3);
+        Assert(num_hb <= 3);
 
         if (sent_sendcmpct && !random_node.fDisconnect) {
             // If the fuzzer sent SENDCMPCT with proper version, check the node's state matches what it sent.
             const CNodeStats& random_node_stats = stats[random_node.GetId()];
-            if (valid_sendcmpct) assert(random_node_stats.m_bip152_highbandwidth_from == requested_hb);
+            if (valid_sendcmpct) Assert(random_node_stats.m_bip152_highbandwidth_from == requested_hb);
         }
     }
 

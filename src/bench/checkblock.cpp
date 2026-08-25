@@ -27,7 +27,7 @@ static void DeserializeBlockTest(benchmark::Bench& bench)
     bench.unit("block").run([&] {
         CBlock block;
         SpanReader{block_data} >> TX_WITH_WITNESS(block);
-        assert(block.vtx.size() == 1557);
+        Assert(block.vtx.size() == 1557);
     });
 }
 
@@ -41,12 +41,12 @@ static void CheckBlockTest(benchmark::Bench& bench)
         .setup([&] {
             block = CBlock{};
             SpanReader{block_data} >> TX_WITH_WITNESS(block);
-            assert(block.vtx.size() == 1557);
+            Assert(block.vtx.size() == 1557);
         })
         .run([&] {
             BlockValidationState validationState;
             const bool checked{CheckBlock(block, validationState, chain_params->GetConsensus())};
-            assert(checked);
+            Assert(checked);
         });
 }
 

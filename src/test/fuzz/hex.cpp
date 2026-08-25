@@ -23,25 +23,25 @@ FUZZ_TARGET(hex)
     const std::string random_hex_string(buffer.begin(), buffer.end());
     const std::vector<unsigned char> data = ParseHex(random_hex_string);
     const std::vector<std::byte> bytes{ParseHex<std::byte>(random_hex_string)};
-    assert(std::ranges::equal(std::as_bytes(std::span{data}), bytes));
+    Assert(std::ranges::equal(std::as_bytes(std::span{data}), bytes));
     const std::string hex_data = HexStr(data);
     if (IsHex(random_hex_string)) {
-        assert(ToLower(random_hex_string) == hex_data);
+        Assert(ToLower(random_hex_string) == hex_data);
     }
     if (uint256::FromHex(random_hex_string)) {
-        assert(random_hex_string.length() == 64);
-        assert(Txid::FromHex(random_hex_string));
-        assert(Wtxid::FromHex(random_hex_string));
-        assert(uint256::FromUserHex(random_hex_string));
+        Assert(random_hex_string.length() == 64);
+        Assert(Txid::FromHex(random_hex_string));
+        Assert(Wtxid::FromHex(random_hex_string));
+        Assert(uint256::FromUserHex(random_hex_string));
     }
     if (const auto result{uint256::FromUserHex(random_hex_string)}) {
         const auto result_string{result->ToString()}; // ToString() returns a fixed-length string without "0x" prefix
-        assert(result_string.length() == 64);
-        assert(IsHex(result_string));
-        assert(TryParseHex(result_string));
-        assert(Txid::FromHex(result_string));
-        assert(Wtxid::FromHex(result_string));
-        assert(uint256::FromHex(result_string));
+        Assert(result_string.length() == 64);
+        Assert(IsHex(result_string));
+        Assert(TryParseHex(result_string));
+        Assert(Txid::FromHex(result_string));
+        Assert(Wtxid::FromHex(result_string));
+        Assert(uint256::FromHex(result_string));
     }
     try {
         (void)HexToPubKey(random_hex_string);

@@ -78,7 +78,7 @@ FUZZ_TARGET(golomb_rice)
         }
     }
 
-    assert(encoded_deltas == decoded_deltas);
+    Assert(encoded_deltas == decoded_deltas);
 
     {
         const std::vector<uint8_t> random_bytes = ConsumeRandomLengthByteVector(fuzzed_data_provider, 1024);

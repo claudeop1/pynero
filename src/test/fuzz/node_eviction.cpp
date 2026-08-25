@@ -42,6 +42,6 @@ FUZZ_TARGET(node_eviction)
     const std::vector<NodeEvictionCandidate> eviction_candidates_copy = eviction_candidates;
     const std::optional<NodeId> node_to_evict = SelectNodeToEvict(std::move(eviction_candidates));
     if (node_to_evict) {
-        assert(std::any_of(eviction_candidates_copy.begin(), eviction_candidates_copy.end(), [&node_to_evict](const NodeEvictionCandidate& eviction_candidate) { return *node_to_evict == eviction_candidate.id; }));
+        Assert(std::any_of(eviction_candidates_copy.begin(), eviction_candidates_copy.end(), [&node_to_evict](const NodeEvictionCandidate& eviction_candidate) { return *node_to_evict == eviction_candidate.id; }));
     }
 }

@@ -70,8 +70,8 @@ static ReorgTxns CreateBlocks(size_t num_not_shared)
     auto connected_block_txns{CreateRandomTransactions(/*num_txns=*/num_not_shared)};
     std::copy(shared_txns.begin(), shared_txns.end(), std::back_inserter(connected_block_txns));
 
-    assert(disconnected_block_txns.size() == BLOCK_VTX_COUNT);
-    assert(connected_block_txns.size() == BLOCK_VTX_COUNT);
+    Assert(disconnected_block_txns.size() == BLOCK_VTX_COUNT);
+    Assert(connected_block_txns.size() == BLOCK_VTX_COUNT);
 
     return ReorgTxns{/*disconnected_txns=*/disconnected_block_txns,
                      /*connected_txns_1=*/connected_block_txns,
@@ -84,7 +84,7 @@ static void Reorg(const ReorgTxns& reorg)
     DisconnectedBlockTransactions disconnectpool{MAX_DISCONNECTED_TX_POOL_BYTES};
     // Disconnect block
     const auto evicted = disconnectpool.AddTransactionsFromBlock(reorg.disconnected_txns);
-    assert(evicted.empty());
+    Assert(evicted.empty());
 
     // Connect first block
     disconnectpool.removeForBlock(reorg.connected_txns_1);
@@ -92,7 +92,7 @@ static void Reorg(const ReorgTxns& reorg)
     disconnectpool.removeForBlock(reorg.connected_txns_2);
 
     // Sanity Check
-    assert(disconnectpool.size() == BLOCK_VTX_COUNT - reorg.num_shared);
+    Assert(disconnectpool.size() == BLOCK_VTX_COUNT - reorg.num_shared);
 
     disconnectpool.clear();
 }
@@ -104,7 +104,7 @@ static void Reorg(const ReorgTxns& reorg)
 static void AddAndRemoveDisconnectedBlockTransactionsAll(benchmark::Bench& bench)
 {
     const auto chains{CreateBlocks(/*num_not_shared=*/1)};
-    assert(chains.num_shared == BLOCK_VTX_COUNT - 1);
+    Assert(chains.num_shared == BLOCK_VTX_COUNT - 1);
 
     bench.minEpochIterations(10).run([&]() {
         Reorg(chains);
@@ -115,7 +115,7 @@ static void AddAndRemoveDisconnectedBlockTransactionsAll(benchmark::Bench& bench
 static void AddAndRemoveDisconnectedBlockTransactions90(benchmark::Bench& bench)
 {
     const auto chains{CreateBlocks(/*num_not_shared=*/BLOCK_VTX_COUNT_10PERCENT)};
-    assert(chains.num_shared == BLOCK_VTX_COUNT - BLOCK_VTX_COUNT_10PERCENT);
+    Assert(chains.num_shared == BLOCK_VTX_COUNT - BLOCK_VTX_COUNT_10PERCENT);
 
     bench.minEpochIterations(10).run([&]() {
         Reorg(chains);
@@ -126,7 +126,7 @@ static void AddAndRemoveDisconnectedBlockTransactions90(benchmark::Bench& bench)
 static void AddAndRemoveDisconnectedBlockTransactions10(benchmark::Bench& bench)
 {
     const auto chains{CreateBlocks(/*num_not_shared=*/BLOCK_VTX_COUNT - BLOCK_VTX_COUNT_10PERCENT)};
-    assert(chains.num_shared == BLOCK_VTX_COUNT_10PERCENT);
+    Assert(chains.num_shared == BLOCK_VTX_COUNT_10PERCENT);
 
     bench.minEpochIterations(10).run([&]() {
         Reorg(chains);

@@ -29,7 +29,7 @@ static void MakeNewKeyWithFastRandomContext(CKey& key, FastRandomContext& rand_c
     std::vector<unsigned char> keydata;
     keydata = rand_ctx.randbytes(32);
     key.Set(keydata.data(), keydata.data() + keydata.size(), /*fCompressedIn=*/true);
-    assert(key.IsValid());
+    Assert(key.IsValid());
 }
 
 // Creates a transaction with 2 outputs. Spends all outpoints. If outpoints is empty, spends a random one.
@@ -62,7 +62,7 @@ static CTransactionRef MakeMutation(const CTransactionRef& ptx)
     CMutableTransaction tx(*ptx);
     tx.vin[0].scriptWitness.stack.push_back({5});
     auto mutated_tx = MakeTransactionRef(tx);
-    assert(ptx->GetHash() == mutated_tx->GetHash());
+    Assert(ptx->GetHash() == mutated_tx->GetHash());
     return mutated_tx;
 }
 

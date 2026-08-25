@@ -72,7 +72,7 @@ FUZZ_TARGET(mini_miner, .init = initialize_miner)
         CTransactionRef tx = MakeTransactionRef(mtx);
         TestMemPoolEntryHelper entry;
         const CAmount fee{ConsumeMoney(fuzzed_data_provider, /*max=*/MAX_MONEY/100000)};
-        assert(MoneyRange(fee));
+        Assert(MoneyRange(fee));
         TryAddToMempool(pool, entry.Fee(fee).FromTx(tx));
 
         // All outputs are available to spend
@@ -101,22 +101,22 @@ FUZZ_TARGET(mini_miner, .init = initialize_miner)
     CAmount sum_fees = 0;
     {
         node::MiniMiner mini_miner{pool, outpoints};
-        assert(mini_miner.IsReadyToCalculate());
+        Assert(mini_miner.IsReadyToCalculate());
         const auto bump_fees = mini_miner.CalculateBumpFees(target_feerate);
         for (const auto& outpoint : outpoints) {
             auto it = bump_fees.find(outpoint);
-            assert(it != bump_fees.end());
-            assert(it->second >= 0);
+            Assert(it != bump_fees.end());
+            Assert(it->second >= 0);
             sum_fees += it->second;
         }
-        assert(!mini_miner.IsReadyToCalculate());
+        Assert(!mini_miner.IsReadyToCalculate());
     }
     {
         node::MiniMiner mini_miner{pool, outpoints};
-        assert(mini_miner.IsReadyToCalculate());
+        Assert(mini_miner.IsReadyToCalculate());
         total_bumpfee = mini_miner.CalculateTotalBumpFees(target_feerate);
-        assert(total_bumpfee.has_value());
-        assert(!mini_miner.IsReadyToCalculate());
+        Assert(total_bumpfee.has_value());
+        Assert(!mini_miner.IsReadyToCalculate());
     }
     // Overlapping ancestry across multiple outpoints can only reduce the total bump fee.
     assert (sum_fees >= *total_bumpfee);

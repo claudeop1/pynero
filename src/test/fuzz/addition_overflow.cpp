@@ -21,24 +21,24 @@ void TestAdditionOverflow(FuzzedDataProvider& fuzzed_data_provider)
     const bool is_addition_overflow_custom = AdditionOverflow(i, j);
     const auto maybe_add{CheckedAdd(i, j)};
     const auto sat_add{SaturatingAdd(i, j)};
-    assert(is_addition_overflow_custom == !maybe_add.has_value());
-    assert(is_addition_overflow_custom == AdditionOverflow(j, i));
-    assert(maybe_add == CheckedAdd(j, i));
-    assert(sat_add == SaturatingAdd(j, i));
+    Assert(is_addition_overflow_custom == !maybe_add.has_value());
+    Assert(is_addition_overflow_custom == AdditionOverflow(j, i));
+    Assert(maybe_add == CheckedAdd(j, i));
+    Assert(sat_add == SaturatingAdd(j, i));
 #ifndef _MSC_VER
     T result_builtin;
     const bool is_addition_overflow_builtin = __builtin_add_overflow(i, j, &result_builtin);
-    assert(is_addition_overflow_custom == is_addition_overflow_builtin);
+    Assert(is_addition_overflow_custom == is_addition_overflow_builtin);
     if (!is_addition_overflow_custom) {
-        assert(i + j == result_builtin);
+        Assert(i + j == result_builtin);
     }
 #endif
     if (is_addition_overflow_custom) {
-        assert(sat_add == std::numeric_limits<T>::min() || sat_add == std::numeric_limits<T>::max());
+        Assert(sat_add == std::numeric_limits<T>::min() || sat_add == std::numeric_limits<T>::max());
     } else {
         const auto add{i + j};
-        assert(add == maybe_add.value());
-        assert(add == sat_add);
+        Assert(add == maybe_add.value());
+        Assert(add == sat_add);
     }
 }
 } // namespace

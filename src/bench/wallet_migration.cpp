@@ -71,8 +71,8 @@ static void WalletMigration(benchmark::Bench& bench)
             // Add watch-only addresses
             for (size_t w = 0; w < scripts_watch_only.size(); ++w) {
                 const auto& [script, dest] = scripts_watch_only.at(w);
-                assert(legacy_spkm->LoadWatchOnly(script));
-                assert(wallet->SetAddressBook(dest, strprintf("watch_%d", w), /*purpose=*/std::nullopt));
+                Assert(legacy_spkm->LoadWatchOnly(script));
+                Assert(wallet->SetAddressBook(dest, strprintf("watch_%d", w), /*purpose=*/std::nullopt));
                 batch.WriteWatchOnly(script, CKeyMetadata());
             }
 
@@ -95,9 +95,9 @@ static void WalletMigration(benchmark::Bench& bench)
         })
         .run([&] {
             auto res{MigrateLegacyToDescriptor(std::move(wallet), /*passphrase=*/"", *loader->context())};
-            assert(res);
-            assert(res->wallet);
-            assert(res->watchonly_wallet);
+            Assert(res);
+            Assert(res->wallet);
+            Assert(res->watchonly_wallet);
         });
 }
 

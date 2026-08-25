@@ -300,7 +300,7 @@ void DoCheck(std::string prv, std::string pub, const std::string& norm_pub, int 
     // * For non-ranged descriptors, we evaluate the descriptors at positions 0, 1, and 2, but expect the
     //   same result in each case, namely the first element of `scripts`. Because of that, the size of
     //   `scripts` must be one in that case.
-    if (!(flags & RANGE)) assert(scripts.size() == 1);
+    if (!(flags & RANGE)) Assert(scripts.size() == 1);
     size_t max = (flags & RANGE) ? scripts.size() : 3;
 
     // Iterate over the position we'll evaluate the descriptors in.
@@ -519,10 +519,10 @@ void CheckMultipath(const std::string& prv,
         const std::optional<OutputType>& type,
         const std::vector<std::set<std::vector<uint32_t>>>& paths)
 {
-    assert(expanded_prvs.size() == expanded_pubs.size());
-    assert(expanded_prvs.size() == expanded_norm_pubs.size());
-    assert(expanded_prvs.size() == scripts.size());
-    assert(expanded_prvs.size() == paths.size());
+    Assert(expanded_prvs.size() == expanded_pubs.size());
+    Assert(expanded_prvs.size() == expanded_norm_pubs.size());
+    Assert(expanded_prvs.size() == scripts.size());
+    Assert(expanded_prvs.size() == paths.size());
     for (size_t i = 0; i < expanded_prvs.size(); ++i) {
         int flag = flags.at(0);
         if (flags.size() > 1) {
@@ -540,7 +540,7 @@ void CheckMultipath(const std::string& prv,
     std::string error;
     const auto desc{[&](){
         auto parsed{Parse(pub, prov, error)};
-        assert(parsed.size() > 1);
+        Assert(parsed.size() > 1);
         return std::move(parsed.at(0));
     }()};
     desc->ToString();

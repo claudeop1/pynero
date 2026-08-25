@@ -61,7 +61,7 @@ static void WalletIsMine(benchmark::Bench& bench, int num_combo = 0)
     bench.run([&] {
         LOCK(wallet->cs_wallet);
         bool mine = wallet->IsMine(script);
-        assert(!mine);
+        Assert(!mine);
     });
 
     TestUnloadWallet(std::move(wallet));

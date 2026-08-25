@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(flatfile_filename)
     BOOST_CHECK_EQUAL(seq2.FileName(pos), data_dir / "a" / "b00456.dat");
 
     // Check default constructor IsNull
-    assert(FlatFilePos{}.IsNull());
+    Assert(FlatFilePos{}.IsNull());
 }
 
 BOOST_AUTO_TEST_CASE(flatfile_open)

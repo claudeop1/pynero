@@ -56,19 +56,19 @@ void ConnmanTestMsg::Handshake(CNode& node,
     peerman.SendMessages(node);
     FlushSendBuffer(node); // Drop the verack message added by SendMessages.
     if (node.fDisconnect) return;
-    assert(node.nVersion == version);
-    assert(node.GetCommonVersion() == std::min(version, node.AdvertisedVersion()));
+    Assert(node.nVersion == version);
+    Assert(node.GetCommonVersion() == std::min(version, node.AdvertisedVersion()));
     CNodeStateStats statestats;
-    assert(peerman.GetNodeStateStats(node.GetId(), statestats));
-    assert(statestats.m_relay_txs == (relay_txs && !node.IsBlockOnlyConn()));
-    assert(statestats.their_services == remote_services);
+    Assert(peerman.GetNodeStateStats(node.GetId(), statestats));
+    Assert(statestats.m_relay_txs == (relay_txs && !node.IsBlockOnlyConn()));
+    Assert(statestats.their_services == remote_services);
     if (successfully_connected) {
         CSerializedNetMsg msg_verack{NetMsg::Make(NetMsgType::VERACK)};
         (void)connman.ReceiveMsgFrom(node, std::move(msg_verack));
         node.fPauseSend = false;
         connman.ProcessMessagesOnce(node);
         peerman.SendMessages(node);
-        assert(node.fSuccessfullyConnected == true);
+        Assert(node.fSuccessfullyConnected == true);
     }
 }
 
@@ -91,7 +91,7 @@ void ConnmanTestMsg::Reset()
 
 void ConnmanTestMsg::NodeReceiveMsgBytes(CNode& node, std::span<const uint8_t> msg_bytes, bool& complete) const
 {
-    assert(node.ReceiveMsgBytes(msg_bytes, complete));
+    Assert(node.ReceiveMsgBytes(msg_bytes, complete));
     if (complete) {
         node.MarkReceivedMsgsForProcessing();
     }
@@ -112,7 +112,7 @@ void ConnmanTestMsg::FlushSendBuffer(CNode& node) const
 bool ConnmanTestMsg::ReceiveMsgFrom(CNode& node, CSerializedNetMsg&& ser_msg) const
 {
     bool queued = node.m_transport->SetMessageToSend(ser_msg);
-    assert(queued);
+    Assert(queued);
     bool complete{false};
     while (true) {
         const auto& [to_send, _more, _msg_type] = node.m_transport->GetBytesToSend(false);
@@ -237,7 +237,7 @@ bool ZeroSock::WaitMany(std::chrono::milliseconds timeout, EventsPerSock& events
 
 ZeroSock& ZeroSock::operator=(Sock&& other)
 {
-    assert(false && "Move of Sock into ZeroSock not allowed.");
+    Assert(false && "Move of Sock into ZeroSock not allowed.");
     return *this;
 }
 
@@ -258,7 +258,7 @@ ssize_t StaticContentsSock::Recv(void* buf, size_t len, int flags) const
 
 StaticContentsSock& StaticContentsSock::operator=(Sock&& other)
 {
-    assert(false && "Move of Sock into StaticContentsSock not allowed.");
+    Assert(false && "Move of Sock into StaticContentsSock not allowed.");
     return *this;
 }
 
@@ -375,7 +375,7 @@ ssize_t DynSock::Send(const void* buf, size_t len, int) const
 
 std::unique_ptr<Sock> DynSock::Accept(sockaddr* addr, socklen_t* addr_len) const
 {
-    assert(m_accept_sockets && "Accept() called on non-listening DynSock");
+    Assert(m_accept_sockets && "Accept() called on non-listening DynSock");
     ZeroSock::Accept(addr, addr_len);
     return m_accept_sockets->Pop().value_or(nullptr);
 }
@@ -429,6 +429,6 @@ bool DynSock::WaitMany(std::chrono::milliseconds timeout, EventsPerSock& events_
 
 DynSock& DynSock::operator=(Sock&&)
 {
-    assert(false && "Move of Sock into DynSock not allowed.");
+    Assert(false && "Move of Sock into DynSock not allowed.");
     return *this;
 }

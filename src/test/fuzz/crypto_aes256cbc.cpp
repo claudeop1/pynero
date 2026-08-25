@@ -29,6 +29,6 @@ FUZZ_TARGET(crypto_aes256cbc)
         std::vector<uint8_t> decrypted_plaintext(ciphertext.size());
         const int decrypt_ret = decrypt.Decrypt(ciphertext.data(), ciphertext.size(), decrypted_plaintext.data());
         decrypted_plaintext.resize(decrypt_ret);
-        assert(decrypted_plaintext == plaintext || (!pad && plaintext.size() % AES_BLOCKSIZE != 0 && encrypt_ret == 0 && decrypt_ret == 0));
+        Assert(decrypted_plaintext == plaintext || (!pad && plaintext.size() % AES_BLOCKSIZE != 0 && encrypt_ret == 0 && decrypt_ret == 0));
     }
 }

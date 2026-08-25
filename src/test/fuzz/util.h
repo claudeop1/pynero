@@ -50,7 +50,7 @@ template <typename Collection>
 auto PickIterator(FuzzedDataProvider& fuzzed_data_provider, Collection& col)
 {
     const auto sz{col.size()};
-    assert(sz >= 1);
+    Assert(sz >= 1);
     return std::next(col.begin(), fuzzed_data_provider.ConsumeIntegralInRange<decltype(sz)>(0, sz - 1));
 }
 
@@ -209,7 +209,7 @@ template <class Dur>
 
 [[nodiscard]] inline arith_uint256 ConsumeArithUInt256InRange(FuzzedDataProvider& fuzzed_data_provider, const arith_uint256& min, const arith_uint256& max) noexcept
 {
-    assert(min <= max);
+    Assert(min <= max);
     const arith_uint256 range = max - min;
     const arith_uint256 value = ConsumeArithUInt256(fuzzed_data_provider);
     arith_uint256 result = value;
@@ -219,7 +219,7 @@ template <class Dur>
         result = value - (quotient * (range + 1));
     }
     result += min;
-    assert(result >= min && result <= max);
+    Assert(result >= min && result <= max);
     return result;
 }
 

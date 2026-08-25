@@ -32,9 +32,9 @@ FUZZ_TARGET(message, .init = initialize_message)
         std::string signature;
         const bool message_signed = MessageSign(private_key, random_message, signature);
         if (private_key.IsValid()) {
-            assert(message_signed);
+            Assert(message_signed);
             const MessageVerificationResult verification_result = MessageVerify(EncodeDestination(PKHash(private_key.GetPubKey().GetID())), signature, random_message);
-            assert(verification_result == MessageVerificationResult::OK);
+            Assert(verification_result == MessageVerificationResult::OK);
         }
     }
     {

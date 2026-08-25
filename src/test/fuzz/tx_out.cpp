@@ -28,5 +28,5 @@ FUZZ_TARGET(tx_out)
     (void)tx_out.ToString();
     (void)tx_out.IsNull();
     tx_out.SetNull();
-    assert(tx_out.IsNull());
+    Assert(tx_out.IsNull());
 }

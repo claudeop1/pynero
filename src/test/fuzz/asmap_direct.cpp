@@ -59,7 +59,7 @@ FUZZ_TARGET(asmap_direct)
             // asmap, since they will contain some zero padding bits in the last
             // byte.
             if (prefix.size() == asmap.size()) continue;
-            assert(!SanityCheckAsmap(prefix, ip_len));
+            Assert(!SanityCheckAsmap(prefix, ip_len));
         }
 
         // No address input should trigger assertions in interpreter

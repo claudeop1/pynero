@@ -49,5 +49,5 @@ FUZZ_TARGET(crypto_poly1305_split)
     std::array<std::byte, Poly1305::TAGLEN> tag_split, tag_full;
     poly_split.Finalize(tag_split);
     poly_full.Finalize(tag_full);
-    assert(tag_full == tag_split);
+    Assert(tag_full == tag_split);
 }

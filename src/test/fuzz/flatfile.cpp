@@ -23,7 +23,7 @@ FUZZ_TARGET(flatfile)
     }
     std::optional<FlatFilePos> another_flat_file_pos = ConsumeDeserializable<FlatFilePos>(fuzzed_data_provider);
     if (another_flat_file_pos) {
-        assert((*flat_file_pos == *another_flat_file_pos) != (*flat_file_pos != *another_flat_file_pos));
+        Assert((*flat_file_pos == *another_flat_file_pos) != (*flat_file_pos != *another_flat_file_pos));
     }
     (void)flat_file_pos->ToString();
 }

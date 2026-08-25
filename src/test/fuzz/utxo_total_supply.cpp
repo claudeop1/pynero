@@ -104,14 +104,14 @@ FUZZ_TARGET(utxo_total_supply)
         utxo_stats = std::move(
             *Assert(kernel::ComputeUTXOStats(kernel::CoinStatsHashType::NONE, chainman.ActiveChainstate().CoinsDB(), chainman.m_blockman, {})));
         // Check that miner can't print more money than they are allowed to
-        assert(circulation == utxo_stats.total_amount);
+        Assert(circulation == utxo_stats.total_amount);
     };
 
 
     // Update internal state to chain tip
     StoreLastTxo();
     UpdateUtxoStats(/*wipe_cache=*/fuzzed_data_provider.ConsumeBool());
-    assert(ActiveHeight() == 0);
+    Assert(ActiveHeight() == 0);
     // Get at which height we duplicate the coinbase
     // Assuming that the fuzzer will mine relatively short chains (less than 200 blocks), we want the duplicate coinbase to be not too high.
     // Up to 300 seems reasonable.
@@ -135,10 +135,10 @@ FUZZ_TARGET(utxo_total_supply)
         current_block->vtx.front() = MakeTransactionRef(tx);
     }
     current_block->hashMerkleRoot = BlockMerkleRoot(*current_block);
-    assert(!MineBlock(node, current_block).IsNull());
+    Assert(!MineBlock(node, current_block).IsNull());
     circulation += GetBlockSubsidy(ActiveHeight(), Params().GetConsensus());
 
-    assert(ActiveHeight() == 1);
+    Assert(ActiveHeight() == 1);
     UpdateUtxoStats(/*wipe_cache=*/fuzzed_data_provider.ConsumeBool());
     current_block = PrepareNextBlock();
     StoreLastTxo();
@@ -171,7 +171,7 @@ FUZZ_TARGET(utxo_total_supply)
                 if (was_valid) {
                     if (duplicate_coinbase_height == ActiveHeight()) {
                         // we mined the duplicate coinbase
-                        assert(current_block->vtx.at(0)->vin.at(0).scriptSig == duplicate_coinbase_script);
+                        Assert(current_block->vtx.at(0)->vin.at(0).scriptSig == duplicate_coinbase_script);
                     }
 
                     circulation += GetBlockSubsidy(ActiveHeight(), Params().GetConsensus());
@@ -181,7 +181,7 @@ FUZZ_TARGET(utxo_total_supply)
 
                 if (!was_valid) {
                     // utxo stats must not change
-                    assert(prev_hash_serialized == utxo_stats.hashSerialized);
+                    Assert(prev_hash_serialized == utxo_stats.hashSerialized);
                 }
 
                 current_block = PrepareNextBlock();

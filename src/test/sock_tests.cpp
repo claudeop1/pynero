@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(recv_until_terminator_limit)
         } catch (const std::runtime_error& e) {
             threw_as_expected = HasReason("too many bytes without a terminator")(e);
         }
-        assert(threw_as_expected);
+        Assert(threw_as_expected);
     });
 
     BOOST_REQUIRE_NO_THROW(socks.sender.SendComplete("1234567", timeout, interrupt));

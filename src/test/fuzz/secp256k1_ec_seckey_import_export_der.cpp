@@ -33,7 +33,7 @@ FUZZ_TARGET(secp256k1_ec_seckey_import_export_der)
         if (exported) {
             std::vector<uint8_t> out32(32);
             const bool imported = ec_seckey_import_der(secp256k1_context_static, out32.data(), seckey.data(), seckey.size()) == 1;
-            assert(imported && key32 == out32);
+            Assert(imported && key32 == out32);
         }
     }
 }

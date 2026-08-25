@@ -130,7 +130,7 @@ FuzzedSock::~FuzzedSock()
 
 FuzzedSock& FuzzedSock::operator=(Sock&& other)
 {
-    assert(false && "Move of Sock into FuzzedSock not allowed.");
+    Assert(false && "Move of Sock into FuzzedSock not allowed.");
     return *this;
 }
 
@@ -183,7 +183,7 @@ ssize_t FuzzedSock::Recv(void* buf, size_t len, int flags) const
         ENOTSOCK,
         EWOULDBLOCK,
     };
-    assert(buf != nullptr || len == 0);
+    Assert(buf != nullptr || len == 0);
 
     // Do the latency before any of the "return" statements.
     if (m_fuzzed_data_provider.ConsumeBool() && std::getenv("FUZZED_SOCKET_FAKE_LATENCY") != nullptr) {
@@ -378,7 +378,7 @@ int FuzzedSock::GetSockName(sockaddr* name, socklen_t* name_len) const
         SetFuzzedErrNo(m_fuzzed_data_provider, getsockname_errnos);
         return -1;
     }
-    assert(name_len);
+    Assert(name_len);
     const auto bytes{ConsumeRandomLengthByteVector(m_fuzzed_data_provider, *name_len)};
     if (bytes.size() < (int)sizeof(sockaddr)) return -1;
     std::memcpy(name, bytes.data(), bytes.size());

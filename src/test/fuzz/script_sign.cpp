@@ -70,7 +70,7 @@ FUZZ_TARGET(script_sign, .init = initialize_script_sign)
             DeserializeHDKeypaths(serialized, key, deserialized_hd_keypaths);
         } catch (const std::ios_base::failure&) {
         }
-        assert(hd_keypaths.size() >= deserialized_hd_keypaths.size());
+        Assert(hd_keypaths.size() >= deserialized_hd_keypaths.size());
     }
 
     {

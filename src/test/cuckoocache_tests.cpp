@@ -232,7 +232,7 @@ void test_cache_erase_parallel(size_t bytes)
             size_t end = ntodo*(x+1);
             for (uint32_t i = start; i < end; ++i) {
                 bool contains = set.contains(hashes[i], true);
-                assert(contains);
+                Assert(contains);
             }
         });
 

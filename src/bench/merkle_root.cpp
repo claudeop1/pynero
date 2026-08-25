@@ -33,7 +33,7 @@ static void MerkleRoot(benchmark::Bench& bench)
 
             bool mutated{false};
             const uint256 root{ComputeMerkleRoot(std::move(leaves), mutate ? &mutated : nullptr)};
-            assert(root == expected_root);
+            Assert(root == expected_root);
         });
     }
 }

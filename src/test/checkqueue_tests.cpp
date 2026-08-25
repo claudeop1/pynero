@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_FrozenCleanup)
         std::vector<FrozenCleanupCheck> vChecks(1);
         control.Add(std::move(vChecks));
         auto result = control.Complete(); // Hangs here
-        assert(!result);
+        Assert(!result);
     });
     {
         std::unique_lock<std::mutex> l(FrozenCleanupCheck::m);

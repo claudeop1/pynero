@@ -31,58 +31,58 @@ public:
     void test() const
     {
         const pretype& const_pre_vector = pre_vector;
-        assert(real_vector.size() == pre_vector.size());
-        assert(real_vector.empty() == pre_vector.empty());
+        Assert(real_vector.size() == pre_vector.size());
+        Assert(real_vector.empty() == pre_vector.empty());
         for (Size s = 0; s < real_vector.size(); s++) {
-            assert(real_vector[s] == pre_vector[s]);
-            assert(&(pre_vector[s]) == &(pre_vector.begin()[s]));
-            assert(&(pre_vector[s]) == &*(pre_vector.begin() + s));
-            assert(&(pre_vector[s]) == &*((pre_vector.end() + s) - real_vector.size()));
+            Assert(real_vector[s] == pre_vector[s]);
+            Assert(&(pre_vector[s]) == &(pre_vector.begin()[s]));
+            Assert(&(pre_vector[s]) == &*(pre_vector.begin() + s));
+            Assert(&(pre_vector[s]) == &*((pre_vector.end() + s) - real_vector.size()));
         }
-        // assert(realtype(pre_vector) == real_vector);
-        assert(pretype(real_vector.begin(), real_vector.end()) == pre_vector);
-        assert(pretype(pre_vector.begin(), pre_vector.end()) == pre_vector);
+        // Assert(realtype(pre_vector) == real_vector);
+        Assert(pretype(real_vector.begin(), real_vector.end()) == pre_vector);
+        Assert(pretype(pre_vector.begin(), pre_vector.end()) == pre_vector);
         size_t pos = 0;
         for (const T& v : pre_vector) {
-            assert(v == real_vector[pos]);
+            Assert(v == real_vector[pos]);
             ++pos;
         }
         for (const T& v : pre_vector | std::views::reverse) {
             --pos;
-            assert(v == real_vector[pos]);
+            Assert(v == real_vector[pos]);
         }
         for (const T& v : const_pre_vector) {
-            assert(v == real_vector[pos]);
+            Assert(v == real_vector[pos]);
             ++pos;
         }
         for (const T& v : const_pre_vector | std::views::reverse) {
             --pos;
-            assert(v == real_vector[pos]);
+            Assert(v == real_vector[pos]);
         }
         DataStream ss1{};
         DataStream ss2{};
         ss1 << real_vector;
         ss2 << pre_vector;
-        assert(ss1.size() == ss2.size());
+        Assert(ss1.size() == ss2.size());
         for (Size s = 0; s < ss1.size(); s++) {
-            assert(ss1[s] == ss2[s]);
+            Assert(ss1[s] == ss2[s]);
         }
     }
 
     void resize(Size s)
     {
         real_vector.resize(s);
-        assert(real_vector.size() == s);
+        Assert(real_vector.size() == s);
         pre_vector.resize(s);
-        assert(pre_vector.size() == s);
+        Assert(pre_vector.size() == s);
     }
 
     void reserve(Size s)
     {
         real_vector.reserve(s);
-        assert(real_vector.capacity() >= s);
+        Assert(real_vector.capacity() >= s);
         pre_vector.reserve(s);
-        assert(pre_vector.capacity() >= s);
+        Assert(pre_vector.capacity() >= s);
     }
 
     void insert(Size position, const T& value)

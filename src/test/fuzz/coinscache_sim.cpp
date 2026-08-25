@@ -161,7 +161,7 @@ public:
     std::optional<Coin> GetCoin(const COutPoint& outpoint) const final
     {
         if (auto it{m_data.find(outpoint)}; it != m_data.end()) {
-            assert(!it->second.IsSpent());
+            Assert(!it->second.IsSpent());
             return it->second;
         }
         return std::nullopt;
@@ -184,12 +184,12 @@ public:
                 /* For non-dirty entries being written, compare them with what we have. */
                 auto it2 = m_data.find(it->first);
                 if (it->second.coin.IsSpent()) {
-                    assert(it2 == m_data.end());
+                    Assert(it2 == m_data.end());
                 } else {
-                    assert(it2 != m_data.end());
-                    assert(it->second.coin.out == it2->second.out);
-                    assert(it->second.coin.fCoinBase == it2->second.fCoinBase);
-                    assert(it->second.coin.nHeight == it2->second.nHeight);
+                    Assert(it2 != m_data.end());
+                    Assert(it->second.coin.out == it2->second.out);
+                    Assert(it->second.coin.fCoinBase == it2->second.fCoinBase);
+                    Assert(it->second.coin.nHeight == it2->second.nHeight);
                 }
             }
         }
@@ -254,7 +254,7 @@ FUZZ_TARGET(coinscache_sim, .init = [] { static auto setup{MakeNoLogFileContext<
 
     /** Flush changes in top cache to the one below. */
     auto flush = [&]() {
-        assert(caches.size() >= 1);
+        Assert(caches.size() >= 1);
         auto& cache = sim_caches[caches.size()];
         auto& prev_cache = sim_caches[caches.size() - 1];
         for (uint32_t outpointidx = 0; outpointidx < NUM_OUTPOINTS; ++outpointidx) {
@@ -292,13 +292,13 @@ FUZZ_TARGET(coinscache_sim, .init = [] { static auto setup{MakeNoLogFileContext<
                     caches.back()->GetCoin(data.outpoints[outpointidx]);
                 // Compare results.
                 if (!sim.has_value()) {
-                    assert(!realcoin);
+                    Assert(!realcoin);
                 } else {
-                    assert(realcoin && !realcoin->IsSpent());
+                    Assert(realcoin && !realcoin->IsSpent());
                     const auto& simcoin = data.coins[sim->first];
-                    assert(realcoin->out == simcoin.out);
-                    assert(realcoin->fCoinBase == simcoin.fCoinBase);
-                    assert(realcoin->nHeight == sim->second);
+                    Assert(realcoin->out == simcoin.out);
+                    Assert(realcoin->fCoinBase == simcoin.fCoinBase);
+                    Assert(realcoin->nHeight == sim->second);
                 }
             },
 
@@ -309,7 +309,7 @@ FUZZ_TARGET(coinscache_sim, .init = [] { static auto setup{MakeNoLogFileContext<
                 // Look up in real caches.
                 auto real = caches.back()->HaveCoin(data.outpoints[outpointidx]);
                 // Compare results.
-                assert(sim.has_value() == real);
+                Assert(sim.has_value() == real);
             },
 
             [&]() { // HaveCoinInCache
@@ -326,13 +326,13 @@ FUZZ_TARGET(coinscache_sim, .init = [] { static auto setup{MakeNoLogFileContext<
                 const auto& realcoin = caches.back()->AccessCoin(data.outpoints[outpointidx]);
                 // Compare results.
                 if (!sim.has_value()) {
-                    assert(realcoin.IsSpent());
+                    Assert(realcoin.IsSpent());
                 } else {
-                    assert(!realcoin.IsSpent());
+                    Assert(!realcoin.IsSpent());
                     const auto& simcoin = data.coins[sim->first];
-                    assert(simcoin.out == realcoin.out);
-                    assert(simcoin.fCoinBase == realcoin.fCoinBase);
-                    assert(realcoin.nHeight == sim->second);
+                    Assert(simcoin.out == realcoin.out);
+                    Assert(simcoin.fCoinBase == realcoin.fCoinBase);
+                    Assert(realcoin.nHeight == sim->second);
                 }
             },
 
@@ -385,13 +385,13 @@ FUZZ_TARGET(coinscache_sim, .init = [] { static auto setup{MakeNoLogFileContext<
                 sim_caches[caches.size()].entry[outpointidx].entrytype = EntryType::SPENT;
                 // Compare *moveto with the value expected based on simulation data.
                 if (!sim.has_value()) {
-                    assert(realcoin.IsSpent());
+                    Assert(realcoin.IsSpent());
                 } else {
-                    assert(!realcoin.IsSpent());
+                    Assert(!realcoin.IsSpent());
                     const auto& simcoin = data.coins[sim->first];
-                    assert(simcoin.out == realcoin.out);
-                    assert(simcoin.fCoinBase == realcoin.fCoinBase);
-                    assert(realcoin.nHeight == sim->second);
+                    Assert(simcoin.out == realcoin.out);
+                    Assert(simcoin.fCoinBase == realcoin.fCoinBase);
+                    Assert(realcoin.nHeight == sim->second);
                 }
             },
 
@@ -488,17 +488,17 @@ FUZZ_TARGET(coinscache_sim, .init = [] { static auto setup{MakeNoLogFileContext<
             const auto real{cache.PeekCoin(data.outpoints[outpointidx])};
             auto sim = lookup(outpointidx, sim_idx);
             if (!sim.has_value()) {
-                assert(!real);
+                Assert(!real);
             } else {
-                assert(!real->IsSpent());
-                assert(real->out == data.coins[sim->first].out);
-                assert(real->fCoinBase == data.coins[sim->first].fCoinBase);
-                assert(real->nHeight == sim->second);
+                Assert(!real->IsSpent());
+                Assert(real->out == data.coins[sim->first].out);
+                Assert(real->fCoinBase == data.coins[sim->first].fCoinBase);
+                Assert(real->nHeight == sim->second);
             }
         }
 
         // HaveCoinInCache ignores spent coins, so GetCacheSize() may exceed it.
-        assert(cache.GetCacheSize() >= cache_size);
+        Assert(cache.GetCacheSize() >= cache_size);
     }
 
     // Compare the bottom coinsview (not a CCoinsViewCache) with sim_cache[0].
@@ -506,12 +506,12 @@ FUZZ_TARGET(coinscache_sim, .init = [] { static auto setup{MakeNoLogFileContext<
         auto realcoin = bottom.GetCoin(data.outpoints[outpointidx]);
         auto sim = lookup(outpointidx, 0);
         if (!sim.has_value()) {
-            assert(!realcoin);
+            Assert(!realcoin);
         } else {
-            assert(realcoin && !realcoin->IsSpent());
-            assert(realcoin->out == data.coins[sim->first].out);
-            assert(realcoin->fCoinBase == data.coins[sim->first].fCoinBase);
-            assert(realcoin->nHeight == sim->second);
+            Assert(realcoin && !realcoin->IsSpent());
+            Assert(realcoin->out == data.coins[sim->first].out);
+            Assert(realcoin->fCoinBase == data.coins[sim->first].fCoinBase);
+            Assert(realcoin->nHeight == sim->second);
         }
     }
 }

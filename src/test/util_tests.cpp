@@ -1024,7 +1024,7 @@ enum : char {
     char ch;
     while (true) {
         int rv = read(fd, &ch, 1); // Wait for command
-        assert(rv == 1);
+        Assert(rv == 1);
         switch (ch) {
         case LockCommand:
             ch = [&] {
@@ -1033,22 +1033,22 @@ enum : char {
                 case util::LockResult::ErrorWrite: return ResErrorWrite;
                 case util::LockResult::ErrorLock: return ResErrorLock;
                 } // no default case, so the compiler can warn about missing cases
-                assert(false);
+                Assert(false);
             }();
             rv = write(fd, &ch, 1);
-            assert(rv == 1);
+            Assert(rv == 1);
             break;
         case UnlockCommand:
             ReleaseDirectoryLocks();
             ch = ResUnlockSuccess; // Always succeeds
             rv = write(fd, &ch, 1);
-            assert(rv == 1);
+            Assert(rv == 1);
             break;
         case ExitCommand:
             close(fd);
             exit(0);
         default:
-            assert(0);
+            Assert(0);
         }
     }
 }

@@ -146,8 +146,8 @@ BOOST_AUTO_TEST_CASE(compress_p2pk_scripts_not_on_curve)
     pubkey_raw[0] = 4;
     std::copy(x_not_on_curve.begin(), x_not_on_curve.end(), &pubkey_raw[1]);
     CPubKey pubkey_not_on_curve(pubkey_raw);
-    assert(pubkey_not_on_curve.IsValid());
-    assert(!pubkey_not_on_curve.IsFullyValid());
+    Assert(pubkey_not_on_curve.IsValid());
+    Assert(!pubkey_not_on_curve.IsFullyValid());
     CScript script = CScript() << ToByteVector(pubkey_not_on_curve) << OP_CHECKSIG;
     BOOST_CHECK_EQUAL(script.size(), 67U);
 

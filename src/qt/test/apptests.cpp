@@ -95,7 +95,7 @@ AppTests::HandleCallback::~HandleCallback()
 {
     auto& callbacks = m_app_tests.m_callbacks;
     auto it = callbacks.find(m_callback);
-    assert(it != callbacks.end());
+    Assert(it != callbacks.end());
     callbacks.erase(it);
     if (callbacks.empty()) {
         m_app_tests.m_app.exit(0);

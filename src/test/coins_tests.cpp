@@ -305,13 +305,13 @@ typedef std::map<COutPoint, std::tuple<CTransaction,CTxUndo,Coin>> UtxoData;
 UtxoData utxoData;
 
 UtxoData::iterator FindRandomFrom(const std::set<COutPoint> &utxoSet) {
-    assert(utxoSet.size());
+    Assert(utxoSet.size());
     auto utxoSetIt = utxoSet.lower_bound(COutPoint(Txid::FromUint256(m_rng.rand256()), 0));
     if (utxoSetIt == utxoSet.end()) {
         utxoSetIt = utxoSet.begin();
     }
     auto utxoDataIt = utxoData.find(*utxoSetIt);
-    assert(utxoDataIt != utxoData.end());
+    Assert(utxoDataIt != utxoData.end());
     return utxoDataIt;
 }
 }; // struct UpdateTest
@@ -369,7 +369,7 @@ BOOST_FIXTURE_TEST_CASE(updatecoins_simulation_test, UpdateTest)
                 else {
                     coinbase_coins.insert(COutPoint(tx.GetHash(), 0));
                 }
-                assert(CTransaction(tx).IsCoinBase());
+                Assert(CTransaction(tx).IsCoinBase());
             }
 
             // 17/20 times reconnect previous or add a regular tx
@@ -388,8 +388,8 @@ BOOST_FIXTURE_TEST_CASE(updatecoins_simulation_test, UpdateTest)
 
                     // If this tx is already IN the UTXO, then it must be a coinbase, and it must be a duplicate
                     if (utxoset.contains(utxod->first)) {
-                        assert(CTransaction(tx).IsCoinBase());
-                        assert(duplicate_coins.contains(utxod->first));
+                        Assert(CTransaction(tx).IsCoinBase());
+                        Assert(duplicate_coins.contains(utxod->first));
                     }
                     disconnected_coins.erase(utxod->first);
                 }
@@ -401,7 +401,7 @@ BOOST_FIXTURE_TEST_CASE(updatecoins_simulation_test, UpdateTest)
 
                     // Construct the tx to spend the coins of prevouthash
                     tx.vin[0].prevout = prevout;
-                    assert(!CTransaction(tx).IsCoinBase());
+                    Assert(!CTransaction(tx).IsCoinBase());
                 }
                 // In this simple test coins only have two states, spent or unspent, save the unspent state to restore
                 old_coin = result[prevout];
@@ -418,7 +418,7 @@ BOOST_FIXTURE_TEST_CASE(updatecoins_simulation_test, UpdateTest)
 
             }
             // Update the expected result to know about the new output coins
-            assert(tx.vout.size() == 1);
+            Assert(tx.vout.size() == 1);
             const COutPoint outpoint(tx.GetHash(), 0);
             result[outpoint] = Coin{tx.vout[0], height, CTransaction{tx}.IsCoinBase()};
 
@@ -605,13 +605,13 @@ constexpr auto EX_FRESH_MISAPPLIED {"FRESH flag misapplied to coin that exists i
 
 static void SetCoinsValue(const CAmount value, Coin& coin)
 {
-    assert(value != ABSENT);
+    Assert(value != ABSENT);
     coin.Clear();
-    assert(coin.IsSpent());
+    Assert(coin.IsSpent());
     if (value != SPENT) {
         coin.out.nValue = value;
         coin.nHeight = 1;
-        assert(!coin.IsSpent());
+        Assert(!coin.IsSpent());
     }
 }
 
@@ -620,7 +620,7 @@ static size_t InsertCoinsMapEntry(CCoinsMap& map, CoinsCachePair& sentinel, cons
     CCoinsCacheEntry entry;
     SetCoinsValue(cache_coin.value, entry.coin);
     auto [iter, inserted] = map.emplace(OUTPOINT, std::move(entry));
-    assert(inserted);
+    Assert(inserted);
     if (cache_coin.IsDirty()) CCoinsCacheEntry::SetDirty(*iter, sentinel);
     if (cache_coin.IsFresh()) CCoinsCacheEntry::SetFresh(*iter, sentinel);
     return iter->second.coin.DynamicMemoryUsage();

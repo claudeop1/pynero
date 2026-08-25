@@ -81,18 +81,18 @@ FUZZ_TARGET(p2p_transport_serialization, .init = initialize_p2p_transport_serial
             const auto time{NodeClock::time_point::max()};
             bool reject_message{false};
             CNetMessage msg = recv_transport.GetReceivedMessage(time, reject_message);
-            assert(msg.m_type.size() <= CMessageHeader::MESSAGE_TYPE_SIZE);
-            assert(msg.m_raw_message_size <= mutable_msg_bytes.size());
-            assert(msg.m_raw_message_size == CMessageHeader::HEADER_SIZE + msg.m_message_size);
-            assert(msg.m_time == time);
+            Assert(msg.m_type.size() <= CMessageHeader::MESSAGE_TYPE_SIZE);
+            Assert(msg.m_raw_message_size <= mutable_msg_bytes.size());
+            Assert(msg.m_raw_message_size == CMessageHeader::HEADER_SIZE + msg.m_message_size);
+            Assert(msg.m_time == time);
 
             auto msg2 = NetMsg::Make(msg.m_type, std::span{msg.m_recv});
             bool queued = send_transport.SetMessageToSend(msg2);
-            assert(queued);
+            Assert(queued);
             std::optional<bool> known_more;
             while (true) {
                 const auto& [to_send, more, _msg_type] = send_transport.GetBytesToSend(false);
-                if (known_more) assert(!to_send.empty() == *known_more);
+                if (known_more) Assert(!to_send.empty() == *known_more);
                 if (to_send.empty()) break;
                 send_transport.MarkBytesSent(to_send.size());
                 known_more = more;
@@ -183,14 +183,14 @@ void SimulationTest(Transport& initiator, Transport& responder, R& rng, FuzzedDa
         const auto& [bytes, more_nonext, msg_type] = transports[side]->GetBytesToSend(false);
         const auto& [bytes_next, more_next, msg_type_next] = transports[side]->GetBytesToSend(true);
         // Compare with expected more.
-        if (expect_more[side].has_value()) assert(!bytes.empty() == *expect_more[side]);
+        if (expect_more[side].has_value()) Assert(!bytes.empty() == *expect_more[side]);
         // Verify consistency between the two results.
-        assert(std::ranges::equal(bytes, bytes_next));
-        assert(msg_type == msg_type_next);
-        if (more_nonext) assert(more_next);
+        Assert(std::ranges::equal(bytes, bytes_next));
+        Assert(msg_type == msg_type_next);
+        if (more_nonext) Assert(more_next);
         // Compare with previously reported output.
-        assert(to_send[side].size() <= bytes.size());
-        assert(std::ranges::equal(to_send[side], std::span{bytes}.first(to_send[side].size())));
+        Assert(to_send[side].size() <= bytes.size());
+        Assert(std::ranges::equal(to_send[side], std::span{bytes}.first(to_send[side].size())));
         to_send[side].resize(bytes.size());
         std::copy(bytes.begin(), bytes.end(), to_send[side].begin());
         // Remember 'more' results.
@@ -236,7 +236,7 @@ void SimulationTest(Transport& initiator, Transport& responder, R& rng, FuzzedDa
             expect_more_next[side] = last_more_next[side];
         }
         // Remove the bytes from the last reported to-be-sent vector.
-        assert(to_send[side].size() >= send_now);
+        Assert(to_send[side].size() >= send_now);
         to_send[side].erase(to_send[side].begin(), to_send[side].begin() + send_now);
         // Verify that GetBytesToSend gives a result consistent with earlier.
         bytes_to_send_fn(/*side=*/side);
@@ -258,7 +258,7 @@ void SimulationTest(Transport& initiator, Transport& responder, R& rng, FuzzedDa
             bool ret = transports[!side]->ReceivedBytes(to_recv);
             // Bytes must always be accepted, as this test does not introduce any errors in
             // communication.
-            assert(ret);
+            Assert(ret);
             // Clear cached expected 'more' information: if certainly no more data was to be sent
             // before, receiving bytes makes this uncertain.
             if (expect_more[!side] == false) expect_more[!side] = std::nullopt;
@@ -270,21 +270,21 @@ void SimulationTest(Transport& initiator, Transport& responder, R& rng, FuzzedDa
                 bool reject{false};
                 auto received = transports[!side]->GetReceivedMessage({}, reject);
                 // Receiving must succeed.
-                assert(!reject);
+                Assert(!reject);
                 // There must be a corresponding expected message.
-                assert(!expected[side].empty());
+                Assert(!expected[side].empty());
                 // The m_message_size field must be correct.
-                assert(received.m_message_size == received.m_recv.size());
+                Assert(received.m_message_size == received.m_recv.size());
                 // The m_type must match what is expected.
-                assert(received.m_type == expected[side].front().m_type);
+                Assert(received.m_type == expected[side].front().m_type);
                 // The data must match what is expected.
-                assert(std::ranges::equal(received.m_recv, MakeByteSpan(expected[side].front().data)));
+                Assert(std::ranges::equal(received.m_recv, MakeByteSpan(expected[side].front().data)));
                 expected[side].pop_front();
                 progress = true;
             }
             // Progress must be made (by processing incoming bytes and/or returning complete
             // messages) until all received bytes are processed.
-            assert(progress);
+            Assert(progress);
         }
         // Remove the processed bytes from the in_flight buffer.
         in_flight[side].erase(in_flight[side].begin(), in_flight[side].begin() + to_recv_len);
@@ -319,15 +319,15 @@ void SimulationTest(Transport& initiator, Transport& responder, R& rng, FuzzedDa
     }
 
     // Make sure nothing is left in flight.
-    assert(in_flight[0].empty());
-    assert(in_flight[1].empty());
+    Assert(in_flight[0].empty());
+    Assert(in_flight[1].empty());
 
     // Make sure all expected messages were received.
-    assert(expected[0].empty());
-    assert(expected[1].empty());
+    Assert(expected[0].empty());
+    Assert(expected[1].empty());
 
     // Compare session IDs.
-    assert(transports[0]->GetInfo().session_id == transports[1]->GetInfo().session_id);
+    Assert(transports[0]->GetInfo().session_id == transports[1]->GetInfo().session_id);
 }
 
 std::unique_ptr<Transport> MakeV1Transport(NodeId nodeid) noexcept

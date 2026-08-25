@@ -29,8 +29,8 @@ public:
      *  up to 768 bytes. */
     arith_uint6144(std::span<const uint8_t> bytes) : base_uint{}
     {
-        assert(bytes.size() % 4 == 0);
-        assert(bytes.size() <= 768);
+        Assert(bytes.size() % 4 == 0);
+        Assert(bytes.size() <= 768);
         for (unsigned i = 0; i * 4 < bytes.size(); ++i) {
             pn[i] = ReadLE32(bytes.data() + 4 * i);
         }
@@ -39,13 +39,13 @@ public:
     /** Serialize an arithm_uint6144 to any multiply of 4 bytes in LE notation,
      *  on the condition that the represented number fits. */
     void Serialize(std::span<uint8_t> bytes) {
-        assert(bytes.size() % 4 == 0);
-        assert(bytes.size() <= 768);
+        Assert(bytes.size() % 4 == 0);
+        Assert(bytes.size() <= 768);
         for (unsigned i = 0; i * 4 < bytes.size(); ++i) {
             WriteLE32(bytes.data() + 4 * i, pn[i]);
         }
         for (unsigned i = bytes.size() / 4; i * 4 < 768; ++i) {
-            assert(pn[i] == 0);
+            Assert(pn[i] == 0);
         }
     };
 };
@@ -132,7 +132,7 @@ FUZZ_TARGET(num3072_mul)
     uint8_t buf_num[384], buf_uint[384];
     a_num.ToBytes(buf_num);
     a_uint.Serialize(buf_uint);
-    assert(std::ranges::equal(buf_num, buf_uint));
+    Assert(std::ranges::equal(buf_num, buf_uint));
 }
 
 FUZZ_TARGET(num3072_inv)
@@ -164,7 +164,7 @@ FUZZ_TARGET(num3072_inv)
     // Multiply the original and the inverse, and expect 1.
     uint *= uint_inv;
     Reduce(uint);
-    assert(uint == ONE);
+    Assert(uint == ONE);
 }
 
 FUZZ_TARGET(muhash)
@@ -212,5 +212,5 @@ FUZZ_TARGET(muhash)
             muhash.Finalize(out);
             out2 = initial_state_hash;
         });
-    assert(out == out2);
+    Assert(out == out2);
 }

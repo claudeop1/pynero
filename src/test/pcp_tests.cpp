@@ -101,7 +101,7 @@ public:
 
     PCPTestSock& operator=(Sock&& other) override
     {
-        assert(false && "Move of Sock into PCPTestSock not allowed.");
+        Assert(false && "Move of Sock into PCPTestSock not allowed.");
         return *this;
     }
 
