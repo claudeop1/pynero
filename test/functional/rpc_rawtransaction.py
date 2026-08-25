@@ -171,6 +171,16 @@ class RawTransactionsTest(BitcoinTestFramework):
             self.nodes[n].invalidateblock(block1)
             gottx = self.nodes[n].getrawtransaction(txid=tx, verbose=True, blockhash=block1)
             assert_equal(gottx['in_active_chain'], False)
+            if n == 0:
+                self.log.info("Test getrawtransaction with -txindex on a stale block, without blockhash")
+                # The stale block's coinbase cannot return to the mempool nor be mined
+                # again, so the index is the only source left for it.
+                stale_coinbase = self.nodes[n].getblock(block1)['tx'][0]
+                gottx = self.nodes[n].getrawtransaction(txid=stale_coinbase, verbose=True)
+                assert_equal(gottx['blockhash'], block1)
+                assert_equal(gottx['confirmations'], 0)
+                assert 'time' not in gottx
+                assert 'blocktime' not in gottx
             self.nodes[n].reconsiderblock(block1)
             assert_equal(self.nodes[n].getbestblockhash(), block2)
 
