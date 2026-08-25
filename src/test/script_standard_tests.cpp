@@ -11,6 +11,7 @@
 #include <script/signingprovider.h>
 #include <script/solver.h>
 #include <test/util/common.h>
+#include <test/util/display.h>
 #include <test/util/setup_common.h>
 #include <util/strencodings.h>
 
@@ -236,7 +237,7 @@ BOOST_AUTO_TEST_CASE(script_standard_ExtractDestination)
     s.clear();
     s << ToByteVector(pubkey) << OP_CHECKSIG;
     BOOST_CHECK(!ExtractDestination(s, address));
-    BOOST_CHECK(std::get<PubKeyDestination>(address) == PubKeyDestination(pubkey));
+    BOOST_CHECK_EQUAL(std::get<PubKeyDestination>(address), PubKeyDestination(pubkey));
 
     // TxoutType::PUBKEYHASH
     s.clear();
@@ -288,7 +289,7 @@ BOOST_AUTO_TEST_CASE(script_standard_ExtractDestination)
     s.clear();
     s << OP_1 << ANCHOR_BYTES;
     BOOST_CHECK(ExtractDestination(s, address));
-    BOOST_CHECK(std::get<PayToAnchor>(address) == PayToAnchor());
+    BOOST_CHECK_EQUAL(std::get<PayToAnchor>(address), PayToAnchor());
 
     // TxoutType::WITNESS_UNKNOWN with unknown version
     // -> segwit version 1 with an undefined program size (33 bytes in this test case)
@@ -296,13 +297,13 @@ BOOST_AUTO_TEST_CASE(script_standard_ExtractDestination)
     s << OP_1 << ToByteVector(pubkey);
     BOOST_CHECK(ExtractDestination(s, address));
     WitnessUnknown unk_v1{1, ToByteVector(pubkey)};
-    BOOST_CHECK(std::get<WitnessUnknown>(address) == unk_v1);
+    BOOST_CHECK_EQUAL(std::get<WitnessUnknown>(address), unk_v1);
     s.clear();
     // -> segwit versions 2+ are not specified yet
     s << OP_2 << ToByteVector(xpk);
     BOOST_CHECK(ExtractDestination(s, address));
     WitnessUnknown unk_v2{2, ToByteVector(xpk)};
-    BOOST_CHECK(std::get<WitnessUnknown>(address) == unk_v2);
+    BOOST_CHECK_EQUAL(std::get<WitnessUnknown>(address), unk_v2);
 }
 
 BOOST_AUTO_TEST_CASE(script_standard_GetScriptFor_)
