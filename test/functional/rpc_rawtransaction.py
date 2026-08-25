@@ -141,7 +141,10 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         # Make a tx by sending, then generate 2 blocks; block1 has the tx in it
         tx = self.wallet.send_self_transfer(from_node=self.nodes[2])['txid']
-        block1, block2 = self.generate(self.nodes[2], 2)
+        # A non-standard tx cannot go through the mempool, so mine it into block1 directly
+        nonstd_tx = self.wallet.create_self_transfer(version=4)
+        block1 = self.generateblock(self.nodes[2], output='raw(42)', transactions=[tx, nonstd_tx['hex']])['hash']
+        block2 = self.generate(self.nodes[2], 1)[0]
         for n in [0, 2]:
             self.log.info(f"Test getrawtransaction {'with' if n == 0 else 'without'} -txindex, with blockhash")
             # We should be able to get the raw transaction by providing the correct block
@@ -173,10 +176,16 @@ class RawTransactionsTest(BitcoinTestFramework):
             assert_equal(gottx['in_active_chain'], False)
             if n == 0:
                 self.log.info("Test getrawtransaction with -txindex on a stale block, without blockhash")
-                # The stale block's coinbase cannot return to the mempool nor be mined
-                # again, so the index is the only source left for it.
+                # A coinbase cannot return to the mempool, so only the index can serve it
                 stale_coinbase = self.nodes[n].getblock(block1)['tx'][0]
                 gottx = self.nodes[n].getrawtransaction(txid=stale_coinbase, verbose=True)
+                assert_equal(gottx['blockhash'], block1)
+                assert_equal(gottx['confirmations'], 0)
+                assert 'time' not in gottx
+                assert 'blocktime' not in gottx
+                # Same for a non-standard tx, which the mempool will not accept back
+                assert nonstd_tx['txid'] not in self.nodes[n].getrawmempool()
+                gottx = self.nodes[n].getrawtransaction(txid=nonstd_tx['txid'], verbose=True)
                 assert_equal(gottx['blockhash'], block1)
                 assert_equal(gottx['confirmations'], 0)
                 assert 'time' not in gottx
