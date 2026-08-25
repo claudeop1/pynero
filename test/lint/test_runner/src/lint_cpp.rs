@@ -149,6 +149,37 @@ is required, prefer fs::remove.
     }
 }
 
+pub fn lint_c_assert() -> LintResult {
+    let found = git()
+        .args([
+            "grep",
+            "--line-number",
+            "--extended-regexp",
+            r"\<assert\(",
+            "--",
+            // Limit to test-only code for now:
+            "src/test/",
+            "src/bench/",
+            "src/wallet/test/",
+            "src/qt/test/",
+            ":(exclude)src/bench/nanobench.h",
+        ])
+        .args(get_pathspecs_default_excludes())
+        .status()
+        .expect("command error")
+        .success();
+    if found {
+        Err(r#"
+Assert(condition) from src/util/check.h should be used over assert, to avoid confusion around
+possible NDEBUG interaction.
+            "#
+        .trim()
+        .to_string())
+    } else {
+        Ok(())
+    }
+}
+
 pub fn lint_rpc_assert() -> LintResult {
     let found = git()
         .args([
