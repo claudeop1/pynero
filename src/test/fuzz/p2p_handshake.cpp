@@ -11,6 +11,7 @@
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
 #include <test/fuzz/util/net.h>
+#include <test/fuzz/util/reachability.h>
 #include <test/util/net.h>
 #include <test/util/setup_common.h>
 #include <test/util/time.h>
@@ -76,6 +77,8 @@ FUZZ_TARGET(p2p_handshake, .init = ::initialize)
     // under IBD and the rest after leaving it. JumpOutOfIbd() latches, so guard
     // it to call at most once.
     bool jump_out_of_ibd{false};
+    bool saw_ibd_message{false};
+    bool saw_non_ibd_message{false};
     LIMITED_WHILE (fuzzed_data_provider.ConsumeBool(), 100) {
         CNode& connection = *PickValue(fuzzed_data_provider, peers);
         if (connection.fDisconnect || connection.fSuccessfullyConnected) {
@@ -86,6 +89,9 @@ FUZZ_TARGET(p2p_handshake, .init = ::initialize)
 
         if (!jump_out_of_ibd) jump_out_of_ibd = fuzzed_data_provider.ConsumeBool();
         if (jump_out_of_ibd && chainman.IsInitialBlockDownload()) chainman.JumpOutOfIbd();
+        const bool in_ibd{chainman.IsInitialBlockDownload()};
+        saw_ibd_message |= in_ibd;
+        saw_non_ibd_message |= !in_ibd;
 
         clock += std::chrono::seconds{
                     fuzzed_data_provider.ConsumeIntegralInRange<int64_t>(
@@ -112,5 +118,12 @@ FUZZ_TARGET(p2p_handshake, .init = ::initialize)
         }
     }
 
+    bool completed_handshake{false};
+    for (const CNode* peer : peers) {
+        completed_handshake |= peer->fSuccessfullyConnected;
+    }
+    ReachabilityGoal(completed_handshake, "p2p_handshake completes a handshake");
+    ReachabilityGoal(saw_ibd_message, "p2p_handshake processes a message in IBD");
+    ReachabilityGoal(saw_non_ibd_message, "p2p_handshake processes a message outside IBD");
     node.connman->StopNodes();
 }
