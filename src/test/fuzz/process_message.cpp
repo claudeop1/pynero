@@ -15,6 +15,7 @@
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
 #include <test/fuzz/util/net.h>
+#include <test/fuzz/util/reachability.h>
 #include <test/util/net.h>
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
@@ -120,6 +121,7 @@ FUZZ_TARGET(process_message, .init = initialize_process_message)
     if (fuzzed_data_provider.ConsumeBool()) {
         chainman.JumpOutOfIbd();
     }
+    const bool message_in_ibd{chainman.IsInitialBlockDownload()};
 
     bool more_work{true};
     while (more_work) {
@@ -130,6 +132,8 @@ FUZZ_TARGET(process_message, .init = initialize_process_message)
         }
         node.peerman->SendMessages(p2p_node);
     }
+    ReachabilityGoal(message_in_ibd, "process_message processes a message in IBD");
+    ReachabilityGoal(!message_in_ibd, "process_message processes a message outside IBD");
     node.validation_signals->SyncWithValidationInterfaceQueue();
     node.validation_signals->UnregisterValidationInterface(node.peerman.get());
     node.connman->StopNodes();
