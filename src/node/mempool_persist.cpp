@@ -6,6 +6,7 @@
 
 #include <clientversion.h>
 #include <consensus/amount.h>
+#include <consensus/validation.h>
 #include <primitives/transaction.h>
 #include <random.h>
 #include <serialize.h>
@@ -40,14 +41,14 @@ namespace node {
 static const uint64_t MEMPOOL_DUMP_VERSION_NO_XOR_KEY{1};
 static const uint64_t MEMPOOL_DUMP_VERSION{2};
 
-bool LoadMempool(CTxMemPool& pool, const fs::path& load_path, Chainstate& active_chainstate, ImportMempoolOptions&& opts)
+MempoolLoadResult LoadMempool(CTxMemPool& pool, const fs::path& load_path, Chainstate& active_chainstate, ImportMempoolOptions&& opts)
 {
-    if (load_path.empty()) return false;
+    if (load_path.empty()) return {};
 
     AutoFile file{opts.mockable_fopen_function(load_path, "rb")};
     if (file.IsNull()) {
         LogInfo("Failed to open mempool file. Continuing anyway.\n");
-        return false;
+        return {};
     }
 
     int64_t count = 0;
@@ -56,6 +57,8 @@ bool LoadMempool(CTxMemPool& pool, const fs::path& load_path, Chainstate& active
     int64_t already_there = 0;
     int64_t unbroadcast = 0;
     const auto now{NodeClock::now()};
+    std::vector<Wtxid> snapshot_wtxids;
+    uint64_t total_snapshot_tx_weight{0};
 
     try {
         uint64_t version;
@@ -68,7 +71,7 @@ bool LoadMempool(CTxMemPool& pool, const fs::path& load_path, Chainstate& active
             file >> obfuscation;
             file.SetObfuscation(obfuscation);
         } else {
-            return false;
+            return {};
         }
 
         uint64_t total_txns_to_load;
@@ -91,6 +94,10 @@ bool LoadMempool(CTxMemPool& pool, const fs::path& load_path, Chainstate& active
             file >> TX_WITH_WITNESS(tx);
             file >> nTime;
             file >> nFeeDelta;
+            if (opts.collect_restore_stats) {
+                snapshot_wtxids.push_back(tx->GetWitnessHash());
+                total_snapshot_tx_weight += static_cast<uint64_t>(GetTransactionWeight(*tx));
+            }
 
             if (opts.use_current_time) {
                 nTime = TicksSinceEpoch<std::chrono::seconds>(now);
@@ -120,7 +127,7 @@ bool LoadMempool(CTxMemPool& pool, const fs::path& load_path, Chainstate& active
                 ++expired;
             }
             if (active_chainstate.m_chainman.m_interrupt)
-                return false;
+                return {};
         }
         std::map<Txid, CAmount> mapDeltas;
         file >> mapDeltas;
@@ -143,11 +150,25 @@ bool LoadMempool(CTxMemPool& pool, const fs::path& load_path, Chainstate& active
         }
     } catch (const std::exception& e) {
         LogInfo("Failed to deserialize mempool data on file: %s. Continuing anyway.\n", e.what());
-        return false;
+        return {};
     }
 
     LogInfo("Imported mempool transactions from file: %i succeeded, %i failed, %i expired, %i already there, %i waiting for initial broadcast\n", count, failed, expired, already_there, unbroadcast);
-    return true;
+    std::optional<MempoolRestoreStats> restore_stats;
+    if (opts.collect_restore_stats) {
+        restore_stats.emplace();
+        restore_stats->total_tx_weight = total_snapshot_tx_weight;
+        LOCK(pool.cs);
+        for (const auto& wtxid : snapshot_wtxids) {
+            if (const auto it{pool.GetIter(wtxid)}) {
+                restore_stats->restored_tx_weight += static_cast<uint64_t>((*it)->GetTxWeight());
+            }
+        }
+    }
+    return {
+        .success = true,
+        .restore_stats = std::move(restore_stats),
+    };
 }
 
 bool DumpMempool(const CTxMemPool& pool, const fs::path& dump_path, FopenFn mockable_fopen_function, bool skip_file_commit)
