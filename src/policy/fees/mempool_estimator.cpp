@@ -172,6 +172,7 @@ MemPoolFeeRateEstimator::MemPoolFeeRateEstimator(fs::path mempool_estimator_file
 
 void MemPoolFeeRateEstimator::ReadFromDisk()
 {
+    if (m_mempool_estimator_file_path.empty()) return;
     AutoFile file{fsbridge::fopen(m_mempool_estimator_file_path, "rb")};
     if (file.IsNull()) {
         LogDebug(BCLog::ESTIMATEFEE, "%s: %s does not exist. Continuing anyway",
@@ -260,6 +261,7 @@ bool MemPoolFeeRateEstimator::Write(AutoFile& file) const
 
 void MemPoolFeeRateEstimator::FlushMinedBlockStats()
 {
+    if (m_mempool_estimator_file_path.empty()) return;
     if (!m_mempool_estimator_file_path.parent_path().empty()) {
         std::error_code error;
         fs::create_directories(m_mempool_estimator_file_path.parent_path(), error);
@@ -315,6 +317,31 @@ void MemPoolFeeRateEstimator::MempoolTxsRemovedForBlock(const std::shared_ptr<co
         });
     AddMinedBlockStats(m_prev_mined_blocks, {block_height, removed_weight, block_weight});
     m_mined_blocks_tip_hash = block->GetHash();
+    m_cache.Clear();
+}
+
+void MemPoolFeeRateEstimator::MempoolLoadCompleted(bool load_succeeded,
+                                                   uint64_t total_snapshot_weight,
+                                                   uint64_t restored_snapshot_weight)
+{
+    const double restoration_ratio{total_snapshot_weight == 0
+                                       ? (load_succeeded ? 1.0 : 0.0)
+                                       : static_cast<double>(restored_snapshot_weight) / total_snapshot_weight};
+    if (load_succeeded && restoration_ratio >= MEMPOOL_SNAPSHOT_RESTORATION_THRESHOLD) return;
+    LOCK(cs);
+    if (!m_prev_mined_blocks.empty()) {
+        LogDebug(BCLog::ESTIMATEFEE,
+                 "%s: clearing persisted mined-block stats because mempool snapshot restoration was insufficient; "
+                 "load_succeeded=%s restored_weight=%s total_weight=%s restoration=%.2f required_restoration=%.2f",
+                 FeeRateEstimatorTypeToString(FeeRateEstimatorType::MEMPOOL_POLICY),
+                 load_succeeded ? "true" : "false",
+                 restored_snapshot_weight,
+                 total_snapshot_weight,
+                 restoration_ratio,
+                 MEMPOOL_SNAPSHOT_RESTORATION_THRESHOLD);
+    }
+    m_prev_mined_blocks.clear();
+    m_mined_blocks_tip_hash.SetNull();
     m_cache.Clear();
 }
 

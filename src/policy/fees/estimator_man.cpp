@@ -68,6 +68,13 @@ void FeeRateEstimatorManager::ShutdownFlush()
     m_mempool_estimator->FlushMinedBlockStats();
 }
 
+void FeeRateEstimatorManager::MempoolLoadCompleted(bool load_succeeded,
+                                                   uint64_t total_snapshot_weight,
+                                                   uint64_t restored_snapshot_weight)
+{
+    m_mempool_estimator->MempoolLoadCompleted(load_succeeded, total_snapshot_weight, restored_snapshot_weight);
+}
+
 std::vector<MinedBlockStats> FeeRateEstimatorManager::MempoolPolicyEstimatorBlocksStats() const
 {
     return m_mempool_estimator->GetPrevBlockData();
