@@ -11,6 +11,7 @@
 #include <streams.h>
 #include <util/byte_units.h>
 #include <util/check.h>
+#include <util/expected.h>
 #include <util/fs.h>
 #include <util/obfuscation.h>
 
@@ -216,24 +217,80 @@ public:
     CDBWrapper(const CDBWrapper&) = delete;
     CDBWrapper& operator=(const CDBWrapper&) = delete;
 
+    struct ReadFailure {
+        enum class Code {
+            DESERIALIZATION_ERROR,   //!< Key exists but value could not be deserialized.
+            DB_INTERNAL_ERROR,       //!< Unexpected internal DB error.
+        };
+
+        Code status;
+        std::string err_msg;
+    };
+
+    /**
+     * Read and deserialize a value from the database, with explicit error discrimination.
+     *
+     * Unlike Read(), this method distinguishes between a missing key, a deserialization
+     * failure (DESERIALIZATION_ERROR), and an internal DB error (DB_INTERNAL_ERROR),
+     * enabling callers to treat data corruption differently from an absent entry.
+     *
+     * @note Callers are expected to provide well-formed keys; key serialization
+     *       is the only operation that may throw.
+     *
+     * @param[in]  key    The key to look up.
+     * @param[out] value  Populated with the deserialized value when the returned
+     *                    Expected holds true; indeterminate otherwise.
+     * @return On success, true if the key was found (value populated) or false if
+     *         the key was absent. On failure, a ReadFailure describing the error.
+     */
     template <typename K, typename V>
-    bool Read(const K& key, V& value) const
+    [[nodiscard]] util::Expected<bool, ReadFailure> TryRead(const K& key, V& value) const
     {
         DataStream ssKey{};
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
+        // Key serialization is the only operation that may throw.
+        // Callers are expected to provide well-formed keys.
         ssKey << key;
-        std::optional<std::string> strValue{ReadImpl(ssKey)};
-        if (!strValue) {
-            return false;
+
+        std::optional<std::string> strValue;
+        try {
+            strValue = ReadImpl(ssKey);
+            if (!strValue) {
+                return false; // not found
+            }
+        } catch (const std::exception& e) {
+            return util::Unexpected(ReadFailure{ReadFailure::Code::DB_INTERNAL_ERROR, e.what()});
         }
+
         try {
             std::span ssValue{MakeWritableByteSpan(*strValue)};
             m_obfuscation(ssValue);
             SpanReader{ssValue} >> value;
-        } catch (const std::exception&) {
-            return false;
+        } catch (const std::exception& e) {
+            return util::Unexpected(ReadFailure{ReadFailure::Code::DESERIALIZATION_ERROR, e.what()});
         }
+
         return true;
+    }
+
+    /**
+     * Wrapper around TryRead() that preserves the original Read() semantics:
+     * returns true on success, false if the key is absent or deserialization
+     * fails, and throws dbwrapper_error on an internal DB error.
+     *
+     * Prefer TryRead() when the caller needs to distinguish between a missing
+     * key and a corrupt value.
+     */
+    template <typename K, typename V>
+    bool Read(const K& key, V& value) const
+    {
+        const auto ret = TryRead(key,value);
+        if (ret.has_value()) return ret.value();
+        switch (const auto [err_code, err_msg] = ret.error(); err_code) {
+            case ReadFailure::Code::DESERIALIZATION_ERROR: return false;
+            case ReadFailure::Code::DB_INTERNAL_ERROR: throw dbwrapper_error(err_msg);
+        } // no default case, so the compiler can warn about missing cases
+        std::abort(); // unreachable
     }
 
     template <typename K, typename V>
