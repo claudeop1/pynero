@@ -33,7 +33,7 @@ public:
     /**
      * @param[in] block_policy_path    Path to the block policy fee estimates file.
      * @param[in] read_stale_estimates Whether to load stale estimates from disk.
-     * @param[in] mempool_estimator_path Path to the mempool policy estimator data file.
+     * @param[in] mempool_estimator_path Path to the mempool policy estimator data file, or empty to disable persistence.
      * @param[in] mempool              The mempool to use for the mempool fee rate estimator.
      * @param[in] chainman             The chainstate manager.
      */
@@ -67,6 +67,11 @@ public:
 
     /** Flush recorded data to disk as part of shutdown sequence. */
     void ShutdownFlush();
+
+    /** Clear persisted mempool health unless startup restored enough of its mempool snapshot. */
+    void MempoolLoadCompleted(bool load_succeeded,
+                              uint64_t total_snapshot_weight,
+                              uint64_t restored_snapshot_weight);
 
     /**
      * @brief Returns the maximum supported confirmation target from all fee rate estimators.

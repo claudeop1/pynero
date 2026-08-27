@@ -1960,7 +1960,11 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
             return InitError(strprintf(_("acceptstalefeeestimates is not supported on %s chain."), chainparams.GetChainTypeString()));
         }
         MaybeMigrateLegacyFeeEstimates(args);
-        node.fee_estimator_man = std::make_unique<FeeRateEstimatorManager>(BlockPolicyFeeEstPath(args), read_stale_estimates, MempoolPolicyEstimatorPath(args), *Assert(node.mempool), chainman);
+        const fs::path mempool_estimator_path{
+            ShouldPersistMempool(args) ? MempoolPolicyEstimatorPath(args) : fs::path{}};
+        node.fee_estimator_man = std::make_unique<FeeRateEstimatorManager>(
+            BlockPolicyFeeEstPath(args), read_stale_estimates, mempool_estimator_path,
+            *Assert(node.mempool), chainman);
 
         // Flush estimates to disk periodically
         FeeRateEstimatorManager* fee_estimator_man = node.fee_estimator_man.get();
@@ -2129,7 +2133,18 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
         }
         // Load mempool from disk
         if (auto* pool{chainman.ActiveChainstate().GetMempool()}) {
-            LoadMempool(*pool, ShouldPersistMempool(args) ? MempoolPath(args) : fs::path{}, chainman.ActiveChainstate(), {});
+            const auto load_result{LoadMempool(
+                *pool,
+                ShouldPersistMempool(args) ? MempoolPath(args) : fs::path{},
+                chainman.ActiveChainstate(),
+                {.collect_restore_stats = node.fee_estimator_man != nullptr})};
+            if (node.fee_estimator_man && !chainman.m_interrupt) {
+                const auto restore_stats{load_result.restore_stats.value_or(node::MempoolRestoreStats{})};
+                node.fee_estimator_man->MempoolLoadCompleted(
+                    load_result.success && load_result.restore_stats.has_value(),
+                    restore_stats.total_tx_weight,
+                    restore_stats.restored_tx_weight);
+            }
             pool->SetLoadTried(!chainman.m_interrupt);
         }
     });

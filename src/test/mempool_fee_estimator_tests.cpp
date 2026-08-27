@@ -128,6 +128,39 @@ BOOST_AUTO_TEST_CASE(mempool_fee_rate_estimator_cache)
     BOOST_CHECK(!cache.GetCachedEstimate(tip_hash));
 }
 
+BOOST_AUTO_TEST_CASE(mempool_snapshot_restoration)
+{
+    MemPoolFeeRateEstimator estimator{
+        MempoolPolicyEstimatorPath(*m_node.args), *m_node.mempool, *m_node.chainman};
+    unsigned int height{100};
+    const int32_t weight{DEFAULT_BLOCK_MAX_WEIGHT / 2};
+    for (size_t i{0}; i < MEMPOOL_HEALTH_WINDOW_BLOCKS; ++i) {
+        AddRemovedBlock(estimator, weight, weight, height);
+    }
+    BOOST_REQUIRE(estimator.IsMempoolHealthy());
+
+    // An empty snapshot was completely restored.
+    estimator.MempoolLoadCompleted(/*load_succeeded=*/true,
+                                   /*total_snapshot_weight=*/0,
+                                   /*restored_snapshot_weight=*/0);
+    BOOST_CHECK(estimator.IsMempoolHealthy());
+
+    // Retain persisted health at the restoration threshold, even when a tail
+    // of the snapshot was rejected during loading.
+    estimator.MempoolLoadCompleted(/*load_succeeded=*/true,
+                                   /*total_snapshot_weight=*/4,
+                                   /*restored_snapshot_weight=*/3);
+    BOOST_CHECK(estimator.IsMempoolHealthy());
+
+    // Falling below the separately defined restoration threshold invalidates
+    // the whole persisted health window.
+    estimator.MempoolLoadCompleted(/*load_succeeded=*/true,
+                                   /*total_snapshot_weight=*/4,
+                                   /*restored_snapshot_weight=*/2);
+    BOOST_CHECK(estimator.GetPrevBlockData().empty());
+    BOOST_CHECK(!estimator.IsMempoolHealthy());
+}
+
 BOOST_AUTO_TEST_CASE(MempoolFeeRateEstimator)
 {
     auto mempool_estimator = MemPoolFeeRateEstimator(MempoolPolicyEstimatorPath(*m_node.args), *m_node.mempool, *m_node.chainman);

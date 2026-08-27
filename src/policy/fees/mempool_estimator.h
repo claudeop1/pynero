@@ -36,6 +36,9 @@ constexpr std::chrono::seconds CACHE_LIFE{7};
 // Constants for mempool sanity checks.
 constexpr size_t MEMPOOL_HEALTH_WINDOW_BLOCKS = 6;
 constexpr double MEMPOOL_REPRESENTATION_THRESHOLD = 0.75;
+//! Minimum fraction of a persisted mempool snapshot's transaction weight that
+//! must be restored to retain persisted mined-block statistics.
+constexpr double MEMPOOL_SNAPSHOT_RESTORATION_THRESHOLD{0.75};
 
 //! Weight statistics for a recently mined block, used to assess mempool coverage.
 struct MinedBlockStats {
@@ -122,6 +125,12 @@ public:
                                    const std::vector<RemovedMempoolTransactionInfo>& txs_removed_for_block,
                                    unsigned int block_height)
         EXCLUSIVE_LOCKS_REQUIRED(!cs);
+    /**
+     * Preserve persisted health only when enough of the mempool snapshot it describes was restored.
+     */
+    void MempoolLoadCompleted(bool load_succeeded,
+                              uint64_t total_snapshot_weight,
+                              uint64_t restored_snapshot_weight) EXCLUSIVE_LOCKS_REQUIRED(!cs);
     //! Health of the recent mined-block window for fee rate estimation.
     enum class MempoolHealth {
         //! Recent blocks represent the mempool well enough to estimate a fee rate.

@@ -1191,7 +1191,7 @@ static RPCMethod importmempool()
                 .apply_unbroadcast_set = apply_unbroadcast.isNull() ? false : apply_unbroadcast.get_bool(),
             };
 
-            if (!node::LoadMempool(mempool, load_path, chainstate, std::move(opts))) {
+            if (!node::LoadMempool(mempool, load_path, chainstate, std::move(opts)).success) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Unable to import mempool file, see debug log for details.");
             }
 
