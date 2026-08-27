@@ -15,6 +15,7 @@
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
 #include <test/fuzz/util/net.h>
+#include <test/fuzz/util/reachability.h>
 #include <test/util/net.h>
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
@@ -105,9 +106,14 @@ FUZZ_TARGET(process_messages, .init = initialize_process_messages)
     // under IBD and the rest after leaving it. JumpOutOfIbd() latches, so guard
     // it to call at most once.
     bool jump_out_of_ibd{false};
+    bool saw_ibd_message{false};
+    bool saw_non_ibd_message{false};
     LIMITED_WHILE (fuzzed_data_provider.ConsumeBool(), 30) {
         if (!jump_out_of_ibd) jump_out_of_ibd = fuzzed_data_provider.ConsumeBool();
         if (jump_out_of_ibd && chainman.IsInitialBlockDownload()) chainman.JumpOutOfIbd();
+        const bool in_ibd{chainman.IsInitialBlockDownload()};
+        saw_ibd_message |= in_ibd;
+        saw_non_ibd_message |= !in_ibd;
         const std::string random_message_type{fuzzed_data_provider.ConsumeBytesAsString(CMessageHeader::MESSAGE_TYPE_SIZE).c_str()};
 
         node_clock.set(ConsumeTime(fuzzed_data_provider));
@@ -132,6 +138,8 @@ FUZZ_TARGET(process_messages, .init = initialize_process_messages)
             node.peerman->SendMessages(random_node);
         }
     }
+    ReachabilityGoal(saw_ibd_message, "process_messages processes a message in IBD");
+    ReachabilityGoal(saw_non_ibd_message, "process_messages processes a message outside IBD");
     node.validation_signals->SyncWithValidationInterfaceQueue();
     node.validation_signals->UnregisterValidationInterface(node.peerman.get());
     node.connman->StopNodes();
