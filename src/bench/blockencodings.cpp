@@ -112,7 +112,7 @@ static void BlockEncodingBench(benchmark::Bench& bench, size_t n_pool, size_t n_
         // if there were duplicates the benchmark will be invalid
         // (eg, extra txns will be skipped) and we will receive
         // READ_STATUS_FAILED
-        assert(res == READ_STATUS_OK);
+        Assert(res == READ_STATUS_OK);
     });
 }
 

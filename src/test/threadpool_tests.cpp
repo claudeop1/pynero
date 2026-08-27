@@ -6,6 +6,7 @@
 #include <logging.h>
 #include <random.h>
 #include <test/util/common.h>
+#include <util/check.h>
 #include <util/string.h>
 #include <util/threadpool.h>
 #include <util/time.h>
@@ -66,7 +67,7 @@ template <typename F>
 // Returns the futures of the blocking tasks, ensuring all have started and are waiting.
 std::vector<std::future<void>> BlockWorkers(ThreadPool& threadPool, std::counting_semaphore<>& release_sem, size_t num_of_threads_to_block)
 {
-    assert(threadPool.WorkersCount() >= num_of_threads_to_block);
+    Assert(threadPool.WorkersCount() >= num_of_threads_to_block);
     std::latch ready{static_cast<std::ptrdiff_t>(num_of_threads_to_block)};
     std::vector<std::future<void>> blocking_tasks(num_of_threads_to_block);
     for (auto& f : blocking_tasks) f = Submit(threadPool, [&] {

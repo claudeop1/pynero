@@ -7,10 +7,10 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/check.h>
 #include <util/signalinterrupt.h>
 #include <util/strencodings.h>
 
-#include <cassert>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -54,14 +54,14 @@ FUZZ_TARGET(http_request)
     const auto content_length = http_request.GetHeader("Content-Length");
     if (transfer_encoding && ToLower(*transfer_encoding) == "chunked") {
         // A chunked body is the concatenation of the decoded chunks, bounded by MAX_BODY_SIZE.
-        assert(body.size() <= MAX_BODY_SIZE);
+        Assert(body.size() <= MAX_BODY_SIZE);
     } else if (content_length) {
         // A Content-Length body is exactly that many bytes.
         const auto parsed_length{ToIntegral<uint64_t>(*content_length)};
-        assert(parsed_length);
-        assert(body.size() == *parsed_length);
+        Assert(parsed_length);
+        Assert(body.size() == *parsed_length);
     } else {
         // Absent both framing headers there is no body.
-        assert(body.empty());
+        Assert(body.empty());
     }
 }

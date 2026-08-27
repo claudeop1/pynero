@@ -49,7 +49,7 @@ static void SignTransactionSingleInput(benchmark::Bench& bench, InputType input_
             case InputType::P2TR:
                 return GetScriptForDestination(WitnessV1Taproot(XOnlyPubKey{pubkey}));
             } // no default case, so the compiler can warn about missing cases
-            assert(false);
+            Assert(false);
         }();
         prev_spks.push_back(prev_spk);
     }
@@ -69,7 +69,7 @@ static void SignTransactionSingleInput(benchmark::Bench& bench, InputType input_
         coins[prevout] = Coin(CTxOut(10000, prev_spk), /*nHeightIn=*/100, /*fCoinBaseIn=*/false);
         std::map<int, bilingual_str> input_errors;
         bool complete = SignTransaction(tx, &keystore, coins, {.sighash_type = SIGHASH_ALL}, input_errors);
-        assert(complete);
+        Assert(complete);
     });
 }
 
@@ -89,7 +89,7 @@ static void SignSchnorrTapTweakBenchmark(benchmark::Bench& bench, bool use_null_
 
     bench.minEpochIterations(100).run([&] {
         bool success = key.SignSchnorr(msg, sig, &merkle_root, aux);
-        assert(success);
+        Assert(success);
     });
 }
 

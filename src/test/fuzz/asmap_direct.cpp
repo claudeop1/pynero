@@ -3,14 +3,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <netaddress.h>
-#include <util/asmap.h>
 #include <test/fuzz/fuzz.h>
+#include <util/asmap.h>
+#include <util/check.h>
 
 #include <cstdint>
 #include <optional>
 #include <vector>
 
-#include <cassert>
 
 std::vector<std::byte> BitsToBytes(std::span<const uint8_t> bits) noexcept
 {
@@ -59,7 +59,7 @@ FUZZ_TARGET(asmap_direct)
             // asmap, since they will contain some zero padding bits in the last
             // byte.
             if (prefix.size() == asmap.size()) continue;
-            assert(!SanityCheckAsmap(prefix, ip_len));
+            Assert(!SanityCheckAsmap(prefix, ip_len));
         }
 
         // No address input should trigger assertions in interpreter

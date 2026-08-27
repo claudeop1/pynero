@@ -2,10 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <util/asmap.h>
+
 #include <netaddress.h>
 #include <netgroup.h>
 #include <test/fuzz/fuzz.h>
-#include <util/asmap.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 
 #include <cstdint>
@@ -34,10 +36,10 @@ FUZZ_TARGET(asmap)
     const uint8_t* addr_data = buffer.data() + 1 + asmap_size;
     CNetAddr net_addr;
     if (ipv6) {
-        assert(addr_size == ADDR_IPV6_SIZE);
+        Assert(addr_size == ADDR_IPV6_SIZE);
         net_addr.SetLegacyIPv6({addr_data, addr_size});
     } else {
-        assert(addr_size == ADDR_IPV4_SIZE);
+        Assert(addr_size == ADDR_IPV4_SIZE);
         in_addr ipv4;
         memcpy(&ipv4, addr_data, addr_size);
         net_addr.SetIP(CNetAddr{ipv4});

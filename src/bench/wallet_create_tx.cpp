@@ -141,7 +141,7 @@ static void WalletCreateTx(benchmark::Bench& bench, const OutputType output_type
 
     // Check available balance
     auto bal = WITH_LOCK(wallet.cs_wallet, return wallet::AvailableCoins(wallet).GetTotalAmount()); // Cache
-    assert(bal == 49 * COIN * (chain_size - COINBASE_MATURITY));
+    Assert(bal == 49 * COIN * (chain_size - COINBASE_MATURITY));
 
     wallet::CCoinControl coin_control;
     coin_control.m_allow_other_inputs = allow_other_inputs;
@@ -167,7 +167,7 @@ static void WalletCreateTx(benchmark::Bench& bench, const OutputType output_type
     bench.run([&] {
         LOCK(wallet.cs_wallet);
         const auto& tx_res = CreateTransaction(wallet, recipients, /*change_pos=*/std::nullopt, coin_control);
-        assert(tx_res);
+        Assert(tx_res);
     });
 }
 
@@ -201,12 +201,12 @@ static void AvailableCoins(benchmark::Bench& bench, const std::vector<OutputType
 
     // Check available balance
     auto bal = WITH_LOCK(wallet.cs_wallet, return wallet::AvailableCoins(wallet).GetTotalAmount()); // Cache
-    assert(bal == 49 * COIN * (chain_size - COINBASE_MATURITY));
+    Assert(bal == 49 * COIN * (chain_size - COINBASE_MATURITY));
 
     bench.run([&] {
         LOCK(wallet.cs_wallet);
         const auto& res = wallet::AvailableCoins(wallet);
-        assert(res.All().size() == (chain_size - COINBASE_MATURITY) * 2);
+        Assert(res.All().size() == (chain_size - COINBASE_MATURITY) * 2);
     });
 }
 

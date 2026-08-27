@@ -61,7 +61,7 @@ void BenchLinearizeOptimallyTotal(benchmark::Bench& bench, const std::string& na
         uint64_t rng_seed = 0;
         bench.name(bench_name).run([&] {
             auto [_lin, optimal, _cost] = Linearize(depgraph, /*max_cost=*/10000000, rng_seed++, IndexTxOrder{});
-            assert(optimal);
+            Assert(optimal);
         });
     }
 }
@@ -86,10 +86,10 @@ void BenchLinearizeOptimallyPerCost(benchmark::Bench& bench, const std::string& 
             uint64_t recompute_cost = 0;
             for (uint64_t iter = 0; iter < 100; ++iter) {
                 auto [_lin, optimal, cost] = Linearize(depgraph, /*max_cost=*/10000000, /*rng_seed=*/iter, IndexTxOrder{});
-                assert(optimal);
+                Assert(optimal);
                 recompute_cost += cost;
             }
-            assert(total_cost == recompute_cost);
+            Assert(total_cost == recompute_cost);
         });
     }
 }

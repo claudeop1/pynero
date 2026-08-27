@@ -30,7 +30,7 @@ static void HexParse(benchmark::Bench& bench)
 
     bench.batch(data.size()).unit("base16").run([&] {
         auto result = TryParseHex(data);
-        assert(result != std::nullopt); // make sure we're measuring the successful case
+        Assert(result != std::nullopt); // make sure we're measuring the successful case
         ankerl::nanobench::doNotOptimizeAway(result);
     });
 }

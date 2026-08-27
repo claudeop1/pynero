@@ -10,6 +10,7 @@
 #include <span.h>
 #include <streams.h>
 #include <util/bitset.h>
+#include <util/check.h>
 #include <util/feefrac.h>
 
 #include <cstdint>
@@ -236,7 +237,7 @@ struct DepGraphFormatter
             }
             // Construct a new transaction whenever we made it past the new_feerate construction.
             if (new_feerate.IsEmpty()) break;
-            assert(reordering.size() < SetType::Size());
+            Assert(reordering.size() < SetType::Size());
             auto topo_idx = topo_depgraph.AddTransaction(new_feerate);
             topo_depgraph.AddDependencies(new_ancestors, topo_idx);
             if (total_size < SetType::Size()) {
@@ -290,37 +291,37 @@ void SanityCheck(const DepGraph<SetType>& depgraph)
         ++num_positions;
         position_range = i + 1;
     }
-    assert(num_positions == depgraph.TxCount());
-    assert(position_range == depgraph.PositionRange());
-    assert(position_range >= num_positions);
-    assert(position_range <= SetType::Size());
+    Assert(num_positions == depgraph.TxCount());
+    Assert(position_range == depgraph.PositionRange());
+    Assert(position_range >= num_positions);
+    Assert(position_range <= SetType::Size());
     // Consistency check between ancestors internally.
     for (DepGraphIndex i : depgraph.Positions()) {
         // Transactions include themselves as ancestors.
-        assert(depgraph.Ancestors(i)[i]);
+        Assert(depgraph.Ancestors(i)[i]);
         // If a is an ancestor of b, then b's ancestors must include all of a's ancestors.
         for (auto a : depgraph.Ancestors(i)) {
-            assert(depgraph.Ancestors(i).IsSupersetOf(depgraph.Ancestors(a)));
+            Assert(depgraph.Ancestors(i).IsSupersetOf(depgraph.Ancestors(a)));
         }
     }
     // Consistency check between ancestors and descendants.
     for (DepGraphIndex i : depgraph.Positions()) {
         for (DepGraphIndex j : depgraph.Positions()) {
-            assert(depgraph.Ancestors(i)[j] == depgraph.Descendants(j)[i]);
+            Assert(depgraph.Ancestors(i)[j] == depgraph.Descendants(j)[i]);
         }
         // No transaction is a parent or child of itself.
         auto parents = depgraph.GetReducedParents(i);
         auto children = depgraph.GetReducedChildren(i);
-        assert(!parents[i]);
-        assert(!children[i]);
+        Assert(!parents[i]);
+        Assert(!children[i]);
         // Parents of a transaction do not have ancestors inside those parents (except itself).
         // Note that even the transaction itself may be missing (if it is part of a cycle).
         for (auto parent : parents) {
-            assert((depgraph.Ancestors(parent) & parents).IsSubsetOf(SetType::Singleton(parent)));
+            Assert((depgraph.Ancestors(parent) & parents).IsSubsetOf(SetType::Singleton(parent)));
         }
         // Similar for children and descendants.
         for (auto child : children) {
-            assert((depgraph.Descendants(child) & children).IsSubsetOf(SetType::Singleton(child)));
+            Assert((depgraph.Descendants(child) & children).IsSubsetOf(SetType::Singleton(child)));
         }
     }
     if (depgraph.IsAcyclic()) {
@@ -331,17 +332,17 @@ void SanityCheck(const DepGraph<SetType>& depgraph)
         SpanReader reader(ser);
         DepGraph<SetType> decoded_depgraph;
         reader >> Using<DepGraphFormatter>(decoded_depgraph);
-        assert(depgraph == decoded_depgraph);
-        assert(reader.empty());
+        Assert(depgraph == decoded_depgraph);
+        Assert(reader.empty());
         // It must also deserialize correctly without the terminal 0 byte (as the deserializer
         // will upon EOF still return what it read so far).
-        assert(ser.size() >= 1 && ser.back() == 0);
+        Assert(ser.size() >= 1 && ser.back() == 0);
         ser.pop_back();
         reader = SpanReader{ser};
         decoded_depgraph = {};
         reader >> Using<DepGraphFormatter>(decoded_depgraph);
-        assert(depgraph == decoded_depgraph);
-        assert(reader.empty());
+        Assert(depgraph == decoded_depgraph);
+        Assert(reader.empty());
 
         // In acyclic graphs, the union of parents with parents of parents etc. yields the
         // full ancestor set (and similar for children and descendants).
@@ -360,7 +361,7 @@ void SanityCheck(const DepGraph<SetType>& depgraph)
                 // Stop when no more changes are being made.
                 if (old_ancestors == ancestors) break;
             }
-            assert(ancestors == depgraph.Ancestors(i));
+            Assert(ancestors == depgraph.Ancestors(i));
 
             // Initialize the set of descendants with just the current transaction itself.
             SetType descendants = SetType::Singleton(i);
@@ -371,7 +372,7 @@ void SanityCheck(const DepGraph<SetType>& depgraph)
                 // Stop when no more changes are being made.
                 if (old_descendants == descendants) break;
             }
-            assert(descendants == depgraph.Descendants(i));
+            Assert(descendants == depgraph.Descendants(i));
         }
     }
 }
@@ -381,13 +382,13 @@ template<typename SetType>
 void SanityCheck(const DepGraph<SetType>& depgraph, std::span<const DepGraphIndex> linearization)
 {
     // Check completeness.
-    assert(linearization.size() == depgraph.TxCount());
+    Assert(linearization.size() == depgraph.TxCount());
     SetType done;
     for (auto i : linearization) {
         // Check transaction position is in range.
-        assert(depgraph.Positions()[i]);
+        Assert(depgraph.Positions()[i]);
         // Check topology and lack of duplicates.
-        assert((depgraph.Ancestors(i) - done) == SetType::Singleton(i));
+        Assert((depgraph.Ancestors(i) - done) == SetType::Singleton(i));
         done.Set(i);
     }
 }
@@ -409,7 +410,7 @@ inline uint64_t MaxOptimalLinearizationCost(DepGraphIndex cluster_count)
         592536, 455082, 609249, 659130, 714091, 544507, 718788, 562378,
         601926, 1025081, 732725, 708896, 738224, 900445, 1092519, 1139946
     };
-    assert(cluster_count < std::size(COSTS));
+    Assert(cluster_count < std::size(COSTS));
     // Multiply the table number by two, to account for the fact that they are not absolutes.
     return COSTS[cluster_count] * 2;
 }

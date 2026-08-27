@@ -9,6 +9,7 @@
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util/descriptor.h>
 #include <util/chaintype.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 
 //! The converter of mocked descriptors, needs to be initialized when the target is.
@@ -23,12 +24,12 @@ static void TestDescriptor(const Descriptor& desc, FlatSigningProvider& sig_prov
     (void)desc.GetOutputType();
 
     if (is_ranged.has_value()) {
-        assert(desc.IsRange() == *is_ranged);
+        Assert(desc.IsRange() == *is_ranged);
     } else {
         is_ranged = desc.IsRange();
     }
     if (is_solvable.has_value()) {
-        assert(desc.IsSolvable() == *is_solvable);
+        Assert(desc.IsSolvable() == *is_solvable);
     } else {
         is_solvable = desc.IsSolvable();
     }
@@ -47,28 +48,28 @@ static void TestDescriptor(const Descriptor& desc, FlatSigningProvider& sig_prov
 
     // If we could serialize to script we must be able to infer using the same provider.
     if (!out_scripts.empty()) {
-        assert(InferDescriptor(out_scripts.back(), sig_provider));
+        Assert(InferDescriptor(out_scripts.back(), sig_provider));
 
         // The ScriptSize() must match the size of the serialized Script. (ScriptSize() is set for all descs but 'combo()'.)
         const bool is_combo{!desc.IsSingleType()};
-        assert(is_combo || desc.ScriptSize() == out_scripts.back().size());
+        Assert(is_combo || desc.ScriptSize() == out_scripts.back().size());
     }
 
     const auto max_sat_maxsig{desc.MaxSatisfactionWeight(true)};
     const auto max_sat_nonmaxsig{desc.MaxSatisfactionWeight(false)};
     // Whether an estimate is available must not depend on the signature-size
     // assumption, and assuming non-max-size signatures must never increase it.
-    assert(max_sat_maxsig.has_value() == max_sat_nonmaxsig.has_value());
-    assert(max_sat_nonmaxsig <= max_sat_maxsig);
+    Assert(max_sat_maxsig.has_value() == max_sat_nonmaxsig.has_value());
+    Assert(max_sat_nonmaxsig <= max_sat_maxsig);
     const auto max_elems{desc.MaxSatisfactionElems()};
     // We must be able to estimate the max satisfaction size for any solvable descriptor (but combo).
     const bool is_nontop_or_nonsolvable{!*is_solvable || !desc.GetOutputType()};
     const bool is_input_size_info_set{max_sat_maxsig && max_sat_nonmaxsig && max_elems};
-    assert(is_input_size_info_set || is_nontop_or_nonsolvable);
+    Assert(is_input_size_info_set || is_nontop_or_nonsolvable);
 
     auto max_key_expr = desc.GetMaxKeyExpr();
     auto key_count = desc.GetKeyCount();
-    assert((max_key_expr == 0 && key_count == 0) || max_key_expr + 1 == key_count);
+    Assert((max_key_expr == 0 && key_count == 0) || max_key_expr + 1 == key_count);
 }
 
 void initialize_descriptor_parse()
@@ -94,7 +95,7 @@ FUZZ_TARGET(mocked_descriptor_parse, .init = initialize_mocked_descriptor_parse)
         std::optional<bool> is_ranged;
         std::optional<bool> is_solvable;
         for (const auto& d : desc) {
-            assert(d);
+            Assert(d);
             TestDescriptor(*d, signing_provider, error, is_ranged, is_solvable);
         }
     }
@@ -112,7 +113,7 @@ FUZZ_TARGET(descriptor_parse, .init = initialize_descriptor_parse)
         std::optional<bool> is_ranged;
         std::optional<bool> is_solvable;
         for (const auto& d : desc) {
-            assert(d);
+            Assert(d);
             TestDescriptor(*d, signing_provider, error, is_ranged, is_solvable);
         }
     }

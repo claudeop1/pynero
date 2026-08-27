@@ -127,9 +127,9 @@ void BenchTxGraphTrim(benchmark::Bench& bench)
         graph->GetBlockBuilder();
     });
 
-    assert(!graph->IsOversized(TxGraph::Level::TOP));
+    Assert(!graph->IsOversized(TxGraph::Level::TOP));
     // At least 99% of chains must survive.
-    assert(graph->GetTransactionCount(TxGraph::Level::TOP) >= (NUM_TOP_CHAINS * NUM_TX_PER_TOP_CHAIN * 99) / 100);
+    Assert(graph->GetTransactionCount(TxGraph::Level::TOP) >= (NUM_TOP_CHAINS * NUM_TX_PER_TOP_CHAIN * 99) / 100);
 }
 
 } // namespace

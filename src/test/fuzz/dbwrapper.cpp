@@ -19,7 +19,6 @@
 #include <leveldb/helpers/memenv/memenv.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -151,20 +150,20 @@ void VerifyIterator(CDBWrapper& dbw, const Oracle& oracle,
     }
     for (; it->Valid(); it->Next()) {
         uint16_t db_key;
-        assert(it->GetKey(db_key));
+        Assert(it->GetKey(db_key));
         if (oracle_it != oracle.end() && db_key == oracle_it->first) {
             std::vector<uint8_t> db_value;
-            assert(it->GetValue(db_value));
-            assert(db_value == MakeValue(db_key, oracle_it->second));
+            Assert(it->GetValue(db_value));
+            Assert(db_value == MakeValue(db_key, oracle_it->second));
             ++oracle_it;
         } else {
-            assert(obfuscate);
+            Assert(obfuscate);
             std::string key_str;
-            assert(it->GetKey(key_str));
-            assert(key_str == OBFUSCATION_KEY);
+            Assert(it->GetKey(key_str));
+            Assert(key_str == OBFUSCATION_KEY);
         }
     }
-    assert(oracle_it == oracle.end());
+    Assert(oracle_it == oracle.end());
 }
 
 /** Maximum number of concurrent reader threads in dbwrapper_concurrent_reads. */
@@ -254,9 +253,9 @@ void TestDbWrapper(FuzzedDataProvider& provider,
                 }};
                 fill();
                 if (provider.ConsumeBool()) {
-                    assert(batch.ApproximateSize() >= WRITE_BATCH_HEADER);
+                    Assert(batch.ApproximateSize() >= WRITE_BATCH_HEADER);
                     batch.Clear();
-                    assert(batch.ApproximateSize() == WRITE_BATCH_HEADER);
+                    Assert(batch.ApproximateSize() == WRITE_BATCH_HEADER);
                     batch_writes.clear();
                     batch_erases.clear();
                     fill();
@@ -282,14 +281,14 @@ void TestDbWrapper(FuzzedDataProvider& provider,
                 std::vector<uint8_t> value;
                 const bool found{dbw->Read(key, value)};
                 if (const auto it{oracle.find(key)}; it != oracle.end()) {
-                    assert(found && value == MakeValue(key, it->second));
+                    Assert(found && value == MakeValue(key, it->second));
                 } else {
-                    assert(!found);
+                    Assert(!found);
                 }
             },
             [&] {
                 const auto key{ConsumeKey(provider)};
-                assert(dbw->Exists(key) == oracle.contains(key));
+                Assert(dbw->Exists(key) == oracle.contains(key));
             },
             [&] {
                 uint16_t key{};
@@ -301,7 +300,7 @@ void TestDbWrapper(FuzzedDataProvider& provider,
                     key = ConsumeKey(provider);
                 }
                 FailUnserialize wrong_type;
-                assert(!dbw->Read(key, wrong_type));
+                Assert(!dbw->Read(key, wrong_type));
             },
             [&] {
                 const auto seek_key{provider.ConsumeBool()
@@ -311,12 +310,12 @@ void TestDbWrapper(FuzzedDataProvider& provider,
             },
             // --- Stats ---
             [&] {
-                assert(dbw->IsEmpty() == (oracle.empty() && !obfuscate));
+                Assert(dbw->IsEmpty() == (oracle.empty() && !obfuscate));
             },
             [&] {
                 const auto [k1, k2]{std::minmax({ConsumeKey(provider), ConsumeKey(provider)}, LevelDBBytewiseU16Cmp{})};
                 const size_t estimate_size{dbw->EstimateSize(k1, k2)};
-                if (k1 == k2) assert(estimate_size == 0);
+                if (k1 == k2) Assert(estimate_size == 0);
             },
             [&] {
                 (void)dbw->DynamicMemoryUsage();
@@ -428,13 +427,13 @@ FUZZ_TARGET(dbwrapper_concurrent_reads, .init = [] { static auto setup{MakeNoLog
                 switch (op) {
                 case ReadOp::Read:
                     if (const auto oit{oracle.find(key)}; oit != oracle.end()) {
-                        assert(db.Read(key, v) && v == MakeValue(key, oit->second));
+                        Assert(db.Read(key, v) && v == MakeValue(key, oit->second));
                     } else {
-                        assert(!db.Read(key, v));
+                        Assert(!db.Read(key, v));
                     }
                     break;
                 case ReadOp::Exists:
-                    assert(db.Exists(key) == oracle.contains(key));
+                    Assert(db.Exists(key) == oracle.contains(key));
                     break;
                 case ReadOp::IteratorSeek:
                     it->Seek(key);
@@ -442,12 +441,12 @@ FUZZ_TARGET(dbwrapper_concurrent_reads, .init = [] { static auto setup{MakeNoLog
                     // on it, so the result matches the oracle, which only tracks user keys.
                     if (it->Valid() && it->GetKey(key_str) && key_str == OBFUSCATION_KEY) it->Next();
                     if (const auto oit{oracle.lower_bound(key)}; oit != oracle.end()) {
-                        assert(it->Valid());
+                        Assert(it->Valid());
                         uint16_t actual_key;
-                        assert(it->GetKey(actual_key) && actual_key == oit->first);
-                        assert(it->GetValue(v) && v == MakeValue(actual_key, oit->second));
+                        Assert(it->GetKey(actual_key) && actual_key == oit->first);
+                        Assert(it->GetValue(v) && v == MakeValue(actual_key, oit->second));
                     } else {
-                        assert(!it->Valid());
+                        Assert(!it->Valid());
                     }
                     break;
                 }

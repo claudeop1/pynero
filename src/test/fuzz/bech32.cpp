@@ -3,11 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <bech32.h>
-#include <test/fuzz/fuzz.h>
+
 #include <test/fuzz/FuzzedDataProvider.h>
+#include <test/fuzz/fuzz.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 
-#include <cassert>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -20,12 +21,12 @@ FUZZ_TARGET(bech32_random_decode)
     auto decoded = bech32::Decode(random_string, limit);
 
     if (decoded.hrp.empty()) {
-        assert(decoded.encoding == bech32::Encoding::INVALID);
-        assert(decoded.data.empty());
+        Assert(decoded.encoding == bech32::Encoding::INVALID);
+        Assert(decoded.data.empty());
     } else {
-        assert(decoded.encoding != bech32::Encoding::INVALID);
+        Assert(decoded.encoding != bech32::Encoding::INVALID);
         auto reencoded = bech32::Encode(decoded.encoding, decoded.hrp, decoded.data);
-        assert(CaseInsensitiveEqual(random_string, reencoded));
+        Assert(CaseInsensitiveEqual(random_string, reencoded));
     }
 }
 
@@ -57,12 +58,12 @@ FUZZ_TARGET(bech32_roundtrip)
     if (size <= bech32::CharLimit::BECH32) {
         for (auto encoding: {bech32::Encoding::BECH32, bech32::Encoding::BECH32M}) {
             auto encoded = bech32::Encode(encoding, hrp, converted_input);
-            assert(!encoded.empty());
+            Assert(!encoded.empty());
 
             const auto decoded = bech32::Decode(encoded);
-            assert(decoded.encoding == encoding);
-            assert(decoded.hrp == hrp);
-            assert(decoded.data == converted_input);
+            Assert(decoded.encoding == encoding);
+            Assert(decoded.hrp == hrp);
+            Assert(decoded.data == converted_input);
         }
     }
 }

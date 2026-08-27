@@ -10,12 +10,12 @@
 #include <node/utxo_snapshot.h>
 #include <rpc/blockchain.h>
 #include <test/util/setup_common.h>
+#include <univalue.h>
 #include <util/byte_units.h>
+#include <util/check.h>
 #include <util/fs.h>
 #include <util/log.h>
 #include <validation.h>
-
-#include <univalue.h>
 
 inline constexpr auto NoMalleation = [](AutoFile& file, node::SnapshotMetadata& meta){};
 
@@ -99,7 +99,7 @@ CreateAndActivateUTXOSnapshot(
                 // ids that are set when blocks are received, to make test setup
                 // more realistic and satisfy consistency checks in
                 // CheckBlockIndex().
-                assert(pindex->IsValid(BlockStatus::BLOCK_VALID_TREE));
+                Assert(pindex->IsValid(BlockStatus::BLOCK_VALID_TREE));
                 pindex->nStatus = BlockStatus::BLOCK_VALID_TREE;
                 pindex->nTx = 0;
                 pindex->m_chain_tx_count = 0;

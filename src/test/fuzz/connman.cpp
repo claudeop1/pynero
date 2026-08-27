@@ -16,6 +16,7 @@
 #include <test/fuzz/util/threadinterrupt.h>
 #include <test/util/setup_common.h>
 #include <test/util/time.h>
+#include <util/check.h>
 #include <util/translation.h>
 
 #include <cstdint>
@@ -144,12 +145,12 @@ FUZZ_TARGET(connman, .init = initialize_connman)
                 const auto added_node_info{connman.GetAddedNodeInfo(/*include_connected=*/true)};
                 const auto add_node{connman.AddNode({node_str, /*use_v2transport=*/fuzzed_data_provider.ConsumeBool()})};
                 if (add_node) {
-                    assert(!connman.AddNode({node_str, /*use_v2transport=*/fuzzed_data_provider.ConsumeBool()}));
-                    assert(added_node_info.size() < connman.GetAddedNodeInfo(/*include_connected=*/true).size());
+                    Assert(!connman.AddNode({node_str, /*use_v2transport=*/fuzzed_data_provider.ConsumeBool()}));
+                    Assert(added_node_info.size() < connman.GetAddedNodeInfo(/*include_connected=*/true).size());
                     const auto remove{fuzzed_data_provider.ConsumeBool()};
                     if (remove) {
-                        assert(connman.RemoveAddedNode(node_str));
-                        assert(added_node_info.size() == connman.GetAddedNodeInfo(/*include_connected=*/true).size());
+                        Assert(connman.RemoveAddedNode(node_str));
+                        Assert(added_node_info.size() == connman.GetAddedNodeInfo(/*include_connected=*/true).size());
                     }
                 }
             },
@@ -211,7 +212,7 @@ FUZZ_TARGET(connman, .init = initialize_connman)
             [&] {
                 const auto set_active{fuzzed_data_provider.ConsumeBool()};
                 connman.SetNetworkActive(set_active);
-                assert(connman.GetNetworkActive() == set_active);
+                Assert(connman.GetNetworkActive() == set_active);
             },
             [&] {
                 connman.SetTryNewOutboundPeer(fuzzed_data_provider.ConsumeBool());
@@ -221,16 +222,16 @@ FUZZ_TARGET(connman, .init = initialize_connman)
                 const auto before{connman.GetLocalServices()};
                 if (fuzzed_data_provider.ConsumeBool()) {
                     connman.AddLocalServices(services);
-                    assert((connman.GetLocalServices() & services) == services);
+                    Assert((connman.GetLocalServices() & services) == services);
                     // Restore by clearing only the bits that weren't already set.
                     connman.RemoveLocalServices(ServiceFlags(services & ~before));
                 } else {
                     connman.RemoveLocalServices(services);
-                    assert((connman.GetLocalServices() & services) == 0);
+                    Assert((connman.GetLocalServices() & services) == 0);
                     // Restore by re-adding only the bits that were previously set.
                     connman.AddLocalServices(ServiceFlags(services & before));
                 }
-                assert(connman.GetLocalServices() == before);
+                Assert(connman.GetLocalServices() == before);
             },
             [&] {
                 ConnectionType conn_type{
@@ -293,23 +294,23 @@ FUZZ_TARGET(connman, .init = initialize_connman)
     });
     (void)connman.GetAddedNodeInfo(/*include_connected=*/false);
     (void)connman.GetExtraFullOutboundCount();
-    assert(connman.GetLocalServices() == local_services);
-    assert(connman.GetMaxOutboundTarget() == max_outbound_limit);
+    Assert(connman.GetLocalServices() == local_services);
+    Assert(connman.GetMaxOutboundTarget() == max_outbound_limit);
     const auto time_left_in_cycle{connman.GetMaxOutboundTimeLeftInCycle()};
     std::vector<CNodeStats> stats;
     connman.GetNodeStats(stats);
     const auto bytes_left{connman.GetOutboundTargetBytesLeft()};
-    assert(bytes_left <= max_outbound_limit);
+    Assert(bytes_left <= max_outbound_limit);
     if (max_outbound_limit == 0) {
-        assert(bytes_left == 0);
-        assert(time_left_in_cycle == std::chrono::seconds{0});
-        assert(!connman.OutboundTargetReached(/*historicalBlockServingLimit=*/false));
-        assert(!connman.OutboundTargetReached(/*historicalBlockServingLimit=*/true));
+        Assert(bytes_left == 0);
+        Assert(time_left_in_cycle == std::chrono::seconds{0});
+        Assert(!connman.OutboundTargetReached(/*historicalBlockServingLimit=*/false));
+        Assert(!connman.OutboundTargetReached(/*historicalBlockServingLimit=*/true));
     }
-    assert(connman.GetTotalBytesRecv() >= total_bytes_recv_initial);
-    assert(connman.GetTotalBytesSent() >= total_bytes_sent_initial);
+    Assert(connman.GetTotalBytesRecv() >= total_bytes_recv_initial);
+    Assert(connman.GetTotalBytesSent() >= total_bytes_sent_initial);
     (void)connman.GetTryNewOutboundPeer();
-    assert(connman.GetUseAddrmanOutgoing() == use_addrman_outgoing);
+    Assert(connman.GetUseAddrmanOutgoing() == use_addrman_outgoing);
     (void)connman.ASMapHealthCheck();
 
     connman.ClearTestNodes();

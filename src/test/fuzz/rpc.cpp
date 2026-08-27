@@ -20,12 +20,12 @@
 #include <tinyformat.h>
 #include <uint256.h>
 #include <univalue.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/time.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
@@ -414,7 +414,7 @@ FUZZ_TARGET(rpc, .init = initialize_rpc)
         const std::string error_msg{json_rpc_error.find_value("message").get_str()};
         if (error_msg.starts_with("Internal bug detected")) {
             // Only allow the intentional internal bug
-            assert(error_msg.find("trigger_internal_bug") != std::string::npos);
+            Assert(error_msg.find("trigger_internal_bug") != std::string::npos);
         }
     }
 }

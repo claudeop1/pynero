@@ -3,12 +3,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <cuckoocache.h>
+
 #include <script/sigcache.h>
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
 #include <test/util/setup_common.h>
 #include <util/byte_units.h>
+#include <util/check.h>
 
 #include <cstdint>
 #include <string>
@@ -21,7 +23,7 @@ struct RandomHasher {
     template <uint8_t>
     uint32_t operator()(const bool& /* unused */) const
     {
-        assert(fuzzed_data_provider_ptr != nullptr);
+        Assert(fuzzed_data_provider_ptr != nullptr);
         return fuzzed_data_provider_ptr->ConsumeIntegral<uint32_t>();
     }
 };

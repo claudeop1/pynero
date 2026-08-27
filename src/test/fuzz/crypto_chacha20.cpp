@@ -7,6 +7,7 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/check.h>
 
 #include <array>
 #include <cstddef>
@@ -85,7 +86,7 @@ void ChaCha20SplitFuzz(FuzzedDataProvider& provider)
     }
 
     // Whether UseCrypt is used or not, the two byte arrays must match.
-    assert(data1 == data2);
+    Assert(data1 == data2);
 
     // Encrypt data1, the whole array at once.
     if constexpr (UseCrypt) {
@@ -116,9 +117,9 @@ void ChaCha20SplitFuzz(FuzzedDataProvider& provider)
         if (is_last) break;
     }
     // We should have processed everything now.
-    assert(bytes2 == total_bytes);
+    Assert(bytes2 == total_bytes);
     // And the result should match.
-    assert(data1 == data2);
+    Assert(data1 == data2);
 }
 
 } // namespace

@@ -2,18 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
-#include <txrequest.h>
-#include <uint256.h>
-
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
+#include <txrequest.h>
+#include <uint256.h>
+#include <util/check.h>
+
+#include <boost/test/unit_test.hpp>
 
 #include <algorithm>
 #include <functional>
 #include <vector>
-
-#include <boost/test/unit_test.hpp>
 
 namespace {
 
@@ -95,7 +94,7 @@ public:
     /** Advance this Scenario's time; this affects the timestamps newly scheduled events get. */
     void AdvanceTime(std::chrono::microseconds amount)
     {
-        assert(amount.count() >= 0);
+        Assert(amount.count() >= 0);
         m_now += amount;
     }
 
@@ -167,7 +166,7 @@ public:
         const auto comment = m_testname + " " + checkname;
         auto& runner = m_runner;
         const auto now = m_now;
-        assert(offset.count() <= 0);
+        Assert(offset.count() <= 0);
         runner.actions.emplace_back(m_now, [=, &runner]() {
             std::vector<std::pair<NodeId, GenTxid>> expired_now;
             auto ret = runner.txrequest.GetRequestable(peer, now + offset, &expired_now);

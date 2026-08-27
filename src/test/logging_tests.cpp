@@ -10,9 +10,12 @@
 #include <test/util/logging.h>
 #include <test/util/setup_common.h>
 #include <tinyformat.h>
+#include <util/check.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/string.h>
+
+#include <boost/test/unit_test.hpp>
 
 #include <chrono>
 #include <fstream>
@@ -24,8 +27,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include <boost/test/unit_test.hpp>
 
 using util::SplitString;
 using util::TrimString;
@@ -392,7 +393,7 @@ void LogFromLocation(Location location, const std::string& message) {
         LogInfo(util::log::NO_RATE_LIMIT, "%s\n", message);
         return;
     } // no default case, so the compiler can warn about missing cases
-    assert(false);
+    Assert(false);
 }
 
 /**
@@ -405,7 +406,7 @@ void TestLogFromLocation(Location location, const std::string& message,
 {
     BOOST_TEST_INFO_SCOPE("TestLogFromLocation called from " << source.file_name() << ":" << source.line());
     using Status = BCLog::LogRateLimiter::Status;
-    if (!suppressions_active) assert(status == Status::UNSUPPRESSED); // developer error
+    if (!suppressions_active) Assert(status == Status::UNSUPPRESSED); // developer error
 
     std::ofstream ofs(LogInstance().m_file_path.std_path(), std::ios::out | std::ios::trunc); // clear debug log
     LogFromLocation(location, message);

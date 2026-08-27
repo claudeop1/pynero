@@ -132,7 +132,7 @@ static void CoinSelection(benchmark::Bench& bench)
         .run([&] {
             for (size_t i{0}; i < NUM_TARGETS; ++i) {
                 auto result{AttemptSelection(wallet.chain(), targets[i], groups[i], *params, /*allow_mixed_output_types=*/true)};
-                assert(result && result->GetSelectedValue() >= targets[i]);
+                Assert(result && result->GetSelectedValue() >= targets[i]);
             }
         });
 }

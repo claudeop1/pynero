@@ -5,10 +5,11 @@
 #ifndef BITCOIN_TEST_FUZZ_UTIL_WALLET_H
 #define BITCOIN_TEST_FUZZ_UTIL_WALLET_H
 
+#include <policy/policy.h>
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
-#include <policy/policy.h>
+#include <util/check.h>
 #include <wallet/coincontrol.h>
 #include <wallet/fees.h>
 #include <wallet/spend.h>
@@ -32,7 +33,7 @@ struct FuzzedWallet {
             wallet->SetLastBlockProcessed(height, chain.getBlockHash(height));
         }
         wallet->m_keypool_size = 1; // Avoid timeout in TopUp()
-        assert(wallet->IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS));
+        Assert(wallet->IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS));
         ImportDescriptors(seed_insecure);
     }
     void ImportDescriptors(const std::string& seed_insecure)
@@ -51,13 +52,13 @@ struct FuzzedWallet {
                 FlatSigningProvider keys;
                 std::string error;
                 auto parsed_desc = std::move(Parse(descriptor, keys, error, /*require_checksum=*/false).at(0));
-                assert(parsed_desc);
-                assert(error.empty());
-                assert(parsed_desc->IsRange());
-                assert(parsed_desc->IsSingleType());
-                assert(!keys.keys.empty());
+                Assert(parsed_desc);
+                Assert(error.empty());
+                Assert(parsed_desc->IsRange());
+                Assert(parsed_desc->IsSingleType());
+                Assert(!keys.keys.empty());
                 WalletDescriptor w_desc{std::move(parsed_desc), /*creation_time=*/0, /*range_start=*/0, /*range_end=*/1, /*next_index=*/0};
-                assert(!wallet->GetDescriptorScriptPubKeyMan(w_desc));
+                Assert(!wallet->GetDescriptorScriptPubKeyMan(w_desc));
                 LOCK(wallet->cs_wallet);
                 auto& spk_manager = Assert(wallet->AddWalletDescriptor(w_desc, keys, /*label=*/"", internal))->get();
                 wallet->AddActiveScriptPubKeyMan(spk_manager.GetID(), *Assert(w_desc.descriptor->GetOutputType()), internal);

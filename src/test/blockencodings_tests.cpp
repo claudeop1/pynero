@@ -7,11 +7,11 @@
 #include <consensus/merkle.h>
 #include <pow.h>
 #include <streams.h>
-#include <test/util/random.h>
-#include <test/util/txmempool.h>
-
 #include <test/util/common.h>
+#include <test/util/random.h>
 #include <test/util/setup_common.h>
+#include <test/util/txmempool.h>
+#include <util/check.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -51,7 +51,7 @@ static CBlock BuildBlockTestCase(FastRandomContext& ctx) {
 
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
-    assert(!mutated);
+    Assert(!mutated);
     while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
     return block;
 }
@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
 
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
-    assert(!mutated);
+    Assert(!mutated);
     while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
 
     // Test simple header round-trip with only coinbase

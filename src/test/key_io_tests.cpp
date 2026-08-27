@@ -2,16 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <test/data/key_io_invalid.json.h>
-#include <test/data/key_io_valid.json.h>
-
 #include <key.h>
 #include <key_io.h>
 #include <script/script.h>
+#include <test/data/key_io_invalid.json.h>
+#include <test/data/key_io_valid.json.h>
 #include <test/util/json.h>
 #include <test/util/setup_common.h>
 #include <univalue.h>
 #include <util/chaintype.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 
 #include <boost/test/unit_test.hpp>
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(key_io_valid_gen)
             bool isCompressed = metadata.find_value("isCompressed").get_bool();
             CKey key;
             key.Set(exp_payload.begin(), exp_payload.end(), isCompressed);
-            assert(key.IsValid());
+            Assert(key.IsValid());
             BOOST_CHECK_MESSAGE(EncodeSecret(key) == exp_base58string, "result mismatch: " + strTest);
         } else {
             CTxDestination dest;

@@ -143,7 +143,7 @@ FUZZ_TARGET(package_rbf, .init = initialize_package_rbf)
             mempool_txs.pop_back();
             break;
         }
-        assert(!pool.GetIter(parent_entry.GetTx().GetHash()));
+        Assert(!pool.GetIter(parent_entry.GetTx().GetHash()));
         TryAddToMempool(pool, parent_entry);
 
         // It's possible that adding this to the mempool failed due to cluster
@@ -210,12 +210,12 @@ FUZZ_TARGET(package_rbf, .init = initialize_package_rbf)
         FeeFrac first_sum;
         for (size_t i = 0; i < calc_results->first.size(); ++i) {
             first_sum += calc_results->first[i];
-            if (i) assert(ByRatio{calc_results->first[i - 1]} >= ByRatio{calc_results->first[i]});
+            if (i) Assert(ByRatio{calc_results->first[i - 1]} >= ByRatio{calc_results->first[i]});
         }
         FeeFrac second_sum;
         for (size_t i = 0; i < calc_results->second.size(); ++i) {
             second_sum += calc_results->second[i];
-            if (i) assert(ByRatio{calc_results->second[i - 1]} >= ByRatio{calc_results->second[i]});
+            if (i) Assert(ByRatio{calc_results->second[i - 1]} >= ByRatio{calc_results->second[i]});
         }
 
         FeeFrac replaced;
@@ -225,23 +225,23 @@ FUZZ_TARGET(package_rbf, .init = initialize_package_rbf)
         }
         // The total fee & size of the new diagram minus replaced fee & size should be the total
         // fee & size of the old diagram minus replacement fee & size.
-        assert((first_sum - replaced) == (second_sum - FeeFrac{replacement_fees, replacement_weight}));
+        Assert((first_sum - replaced) == (second_sum - FeeFrac{replacement_fees, replacement_weight}));
     }
 
     // If internals report error, wrapper should too
     auto err_tuple{ImprovesFeerateDiagram(*changeset)};
     if (!calc_results.has_value()) {
-         assert(err_tuple.value().first == DiagramCheckError::UNCALCULABLE);
+         Assert(err_tuple.value().first == DiagramCheckError::UNCALCULABLE);
     } else {
         // Diagram check succeeded
         auto old_sum = std::accumulate(calc_results->first.begin(), calc_results->first.end(), FeeFrac{});
         auto new_sum = std::accumulate(calc_results->second.begin(), calc_results->second.end(), FeeFrac{});
         if (!err_tuple.has_value()) {
             // New diagram's final fee should always match or exceed old diagram's
-            assert(old_sum.fee <= new_sum.fee);
+            Assert(old_sum.fee <= new_sum.fee);
         } else if (old_sum.fee > new_sum.fee) {
             // Or it failed, and if old diagram had higher fees, it should be a failure
-            assert(err_tuple.value().first == DiagramCheckError::FAILURE);
+            Assert(err_tuple.value().first == DiagramCheckError::FAILURE);
         }
     }
 }

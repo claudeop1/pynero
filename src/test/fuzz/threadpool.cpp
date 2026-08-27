@@ -2,11 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <logging.h>
 #include <util/threadpool.h>
 
+#include <logging.h>
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
+#include <util/check.h>
 
 #include <atomic>
 #include <future>
@@ -34,7 +35,7 @@ static void GetFuture(std::future<void>& future, uint32_t& fail_counter)
     } catch (const ExpectedException&) {
         fail_counter++;
     } catch (...) {
-        assert(false && "Unexpected exception type");
+        Assert(false && "Unexpected exception type");
     }
 }
 
@@ -68,8 +69,8 @@ FUZZ_TARGET(threadpool, .init = setup_threadpool_test)
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
 
     const uint32_t num_tasks = fuzzed_data_provider.ConsumeIntegralInRange<uint32_t>(0, 1024);
-    assert(g_pool.WorkersCount() == g_num_workers);
-    assert(g_pool.WorkQueueSize() == 0);
+    Assert(g_pool.WorkersCount() == g_num_workers);
+    Assert(g_pool.WorkQueueSize() == 0);
 
     // Counters
     std::atomic_uint32_t task_counter{0};
@@ -109,7 +110,7 @@ FUZZ_TARGET(threadpool, .init = setup_threadpool_test)
         GetFuture(fut, fail_counter);
     }
 
-    assert(g_pool.WorkQueueSize() == 0);
-    assert(task_counter.load() == expected_task_counter);
-    assert(fail_counter == expected_fail_tasks);
+    Assert(g_pool.WorkQueueSize() == 0);
+    Assert(task_counter.load() == expected_task_counter);
+    Assert(fail_counter == expected_fail_tasks);
 }

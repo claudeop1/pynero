@@ -17,18 +17,18 @@
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <test/util/validation.h>
+#include <tinyformat.h>
 #include <uint256.h>
 #include <util/byte_units.h>
+#include <util/check.h>
 #include <util/result.h>
 #include <util/vector.h>
 #include <validation.h>
 #include <validationinterface.h>
 
-#include <tinyformat.h>
+#include <boost/test/unit_test.hpp>
 
 #include <vector>
-
-#include <boost/test/unit_test.hpp>
 
 using node::BlockManager;
 using node::KernelNotifications;
@@ -197,7 +197,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_ibd_exit_after_loading_blocks, ChainTe
             tip.nTime = (recent_time - (tip_recent ? 0h : 100h)).time_since_epoch().count();
             chainman.ActiveChain().SetTip(tip);
         } else {
-            assert(!chainman.ActiveChain().Tip());
+            Assert(!chainman.ActiveChain().Tip());
         }
         chainman.UpdateIBDStatus();
     }};

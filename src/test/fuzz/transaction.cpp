@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <primitives/transaction.h>
+
 #include <chainparams.h>
 #include <coins.h>
 #include <consensus/tx_check.h>
@@ -11,16 +13,15 @@
 #include <core_memusage.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
-#include <primitives/transaction.h>
 #include <streams.h>
 #include <test/fuzz/fuzz.h>
 #include <test/util/random.h>
 #include <univalue.h>
 #include <util/chaintype.h>
+#include <util/check.h>
 #include <util/rbf.h>
 #include <validation.h>
 
-#include <cassert>
 
 void initialize_transaction()
 {
@@ -47,7 +48,7 @@ FUZZ_TARGET(transaction, .init = initialize_transaction)
     } catch (const std::ios_base::failure&) {
         valid_mutable_tx = false;
     }
-    assert(valid_tx == valid_mutable_tx);
+    Assert(valid_tx == valid_mutable_tx);
     if (!valid_tx) {
         return;
     }
@@ -63,7 +64,7 @@ FUZZ_TARGET(transaction, .init = initialize_transaction)
     const bool is_standard_with_permit_bare_multisig = IsStandardTx(tx, std::nullopt, /* permit_bare_multisig= */ true, dust_relay_fee, reason);
     const bool is_standard_without_permit_bare_multisig = IsStandardTx(tx, std::nullopt, /* permit_bare_multisig= */ false, dust_relay_fee, reason);
     if (is_standard_without_permit_bare_multisig) {
-        assert(is_standard_with_permit_bare_multisig);
+        Assert(is_standard_with_permit_bare_multisig);
     }
 
     (void)tx.GetHash();

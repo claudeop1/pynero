@@ -10,12 +10,13 @@
 #include <pow.h>
 #include <test/util/common.h>
 #include <test/util/setup_common.h>
+#include <util/check.h>
 #include <validation.h>
+
+#include <boost/test/unit_test.hpp>
 
 #include <cstddef>
 #include <vector>
-
-#include <boost/test/unit_test.hpp>
 
 using State = HeadersSyncState::State;
 
@@ -63,7 +64,7 @@ struct HeadersGeneratorSetup : public RegTestingSetup {
         // roughly as the coefficient 0x7fffff with the exponent 0x20 (32 bytes).
         // This implies around every 2nd hash attempt should succeed, which
         // is why CHAIN_WORK == TARGET_BLOCKS * 2.
-        assert(genesis.nBits == 0x207fffff);
+        Assert(genesis.nBits == 0x207fffff);
 
         // Subtract 1 since the genesis block also contributes work so we reach
         // the CHAIN_WORK target.

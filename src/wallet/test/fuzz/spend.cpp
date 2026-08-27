@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <wallet/spend.h>
+
 #include <addresstype.h>
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
@@ -10,11 +12,11 @@
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <test/util/time.h>
+#include <util/check.h>
 #include <util/time.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/context.h>
-#include <wallet/spend.h>
 #include <wallet/test/util.h>
 #include <wallet/wallet.h>
 
@@ -71,7 +73,7 @@ FUZZ_TARGET(wallet_create_transaction, .init = initialize_setup)
         LOCK(fuzzed_wallet.wallet->cs_wallet);
         auto txid{tx.GetHash()};
         auto ret{fuzzed_wallet.wallet->mapWallet.emplace(std::piecewise_construct, std::forward_as_tuple(txid), std::forward_as_tuple(MakeTransactionRef(std::move(tx)), TxStateConfirmed{chainstate.m_chain.Tip()->GetBlockHash(), chainstate.m_chain.Height(), /*index=*/0}))};
-        assert(ret.second);
+        Assert(ret.second);
         fuzzed_wallet.wallet->RefreshTXOsFromTx(ret.first->second);
     }
 

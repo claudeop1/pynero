@@ -2,15 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <util/feefrac.h>
+
 #include <arith_uint256.h>
 #include <policy/feerate.h>
-#include <util/feefrac.h>
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/check.h>
 
-#include <compare>
 #include <cmath>
+#include <compare>
 #include <cstdint>
 #include <iostream>
 
@@ -74,37 +76,37 @@ FUZZ_TARGET(feefrac)
     int32_t s1 = provider.ConsumeIntegral<int32_t>();
     if (s1 == 0) f1 = 0;
     FeeFrac fr1(f1, s1);
-    assert(fr1.IsEmpty() == (s1 == 0));
+    Assert(fr1.IsEmpty() == (s1 == 0));
 
     int64_t f2 = provider.ConsumeIntegral<int64_t>();
     int32_t s2 = provider.ConsumeIntegral<int32_t>();
     if (s2 == 0) f2 = 0;
     FeeFrac fr2(f2, s2);
-    assert(fr2.IsEmpty() == (s2 == 0));
+    Assert(fr2.IsEmpty() == (s2 == 0));
 
     // Feerate comparisons
     auto cmp_feerate = MulCompare(f1, s2, f2, s1);
-    assert((ByRatio{fr1} <=> ByRatio{fr2}) == cmp_feerate);
-    assert((ByRatio{fr1} < ByRatio{fr2}) == std::is_lt(cmp_feerate));
-    assert((ByRatio{fr1} > ByRatio{fr2}) == std::is_gt(cmp_feerate));
+    Assert((ByRatio{fr1} <=> ByRatio{fr2}) == cmp_feerate);
+    Assert((ByRatio{fr1} < ByRatio{fr2}) == std::is_lt(cmp_feerate));
+    Assert((ByRatio{fr1} > ByRatio{fr2}) == std::is_gt(cmp_feerate));
 
     // Compare with manual invocation of FeeFrac::Mul.
     auto cmp_mul = FeeFrac::Mul(f1, s2) <=> FeeFrac::Mul(f2, s1);
-    assert(cmp_mul == cmp_feerate);
+    Assert(cmp_mul == cmp_feerate);
 
     // Same, but using FeeFrac::MulFallback.
     auto cmp_fallback = FeeFrac::MulFallback(f1, s2) <=> FeeFrac::MulFallback(f2, s1);
-    assert(cmp_fallback == cmp_feerate);
+    Assert(cmp_fallback == cmp_feerate);
 
     // Total order comparisons
     auto cmp_total = std::is_eq(cmp_feerate) ? (s2 <=> s1) : cmp_feerate;
-    assert((ByRatioNegSize{fr1} <=> ByRatioNegSize{fr2}) == cmp_total);
-    assert((ByRatioNegSize{fr1} < ByRatioNegSize{fr2}) == std::is_lt(cmp_total));
-    assert((ByRatioNegSize{fr1} > ByRatioNegSize{fr2}) == std::is_gt(cmp_total));
-    assert((ByRatioNegSize{fr1} <= ByRatioNegSize{fr2}) == std::is_lteq(cmp_total));
-    assert((ByRatioNegSize{fr1} >= ByRatioNegSize{fr2}) == std::is_gteq(cmp_total));
-    assert((ByRatioNegSize{fr1} == ByRatioNegSize{fr2}) == std::is_eq(cmp_total));
-    assert((ByRatioNegSize{fr1} != ByRatioNegSize{fr2}) == std::is_neq(cmp_total));
+    Assert((ByRatioNegSize{fr1} <=> ByRatioNegSize{fr2}) == cmp_total);
+    Assert((ByRatioNegSize{fr1} < ByRatioNegSize{fr2}) == std::is_lt(cmp_total));
+    Assert((ByRatioNegSize{fr1} > ByRatioNegSize{fr2}) == std::is_gt(cmp_total));
+    Assert((ByRatioNegSize{fr1} <= ByRatioNegSize{fr2}) == std::is_lteq(cmp_total));
+    Assert((ByRatioNegSize{fr1} >= ByRatioNegSize{fr2}) == std::is_gteq(cmp_total));
+    Assert((ByRatioNegSize{fr1} == ByRatioNegSize{fr2}) == std::is_eq(cmp_total));
+    Assert((ByRatioNegSize{fr1} != ByRatioNegSize{fr2}) == std::is_neq(cmp_total));
 }
 
 FUZZ_TARGET(feefrac_div_fallback)
@@ -137,21 +139,21 @@ FUZZ_TARGET(feefrac_div_fallback)
 
     // Verify the behavior of FeeFrac::DivFallback.
     auto res = FeeFrac::DivFallback(num, den, round_down);
-    assert(res == 0 || (res < 0) == is_negative);
-    assert(Abs256(res) == quot_abs);
+    Assert(res == 0 || (res < 0) == is_negative);
+    Assert(Abs256(res) == quot_abs);
 
     // Compare approximately with floating-point.
     long double expect = round_down ? std::floor(num_high * 4294967296.0L + num_low) / den
                                     : std::ceil(num_high * 4294967296.0L + num_low) / den;
     // Expect to be accurate within 50 bits of precision, +- 1 sat.
     if (expect == 0.0L) {
-        assert(res >= -1 && res <= 1);
+        Assert(res >= -1 && res <= 1);
     } else if (expect > 0.0L) {
-        assert(res >= expect * 0.999999999999999L - 1.0L);
-        assert(res <= expect * 1.000000000000001L + 1.0L);
+        Assert(res >= expect * 0.999999999999999L - 1.0L);
+        Assert(res <= expect * 1.000000000000001L + 1.0L);
     } else {
-        assert(res >= expect * 1.000000000000001L - 1.0L);
-        assert(res <= expect * 0.999999999999999L + 1.0L);
+        Assert(res >= expect * 1.000000000000001L - 1.0L);
+        Assert(res <= expect * 0.999999999999999L + 1.0L);
     }
 }
 
@@ -185,31 +187,31 @@ FUZZ_TARGET(feefrac_mul_div)
     if ((is_negative && quot_abs > MAX_ABS_INT64) || (!is_negative && quot_abs >= MAX_ABS_INT64)) {
         // If 0 <= mul32 <= div, then the result is guaranteed to be representable. In the context
         // of the Evaluate{Down,Up} calls below, this corresponds to 0 <= at_size <= feefrac.size.
-        assert(mul32 < 0 || mul32 > div);
+        Assert(mul32 < 0 || mul32 > div);
         return;
     }
 
     // Verify the behavior of FeeFrac::Mul + FeeFrac::Div.
     auto res = FeeFrac::Div(FeeFrac::Mul(mul64, mul32), div, round_down);
-    assert(res == 0 || (res < 0) == is_negative);
-    assert(Abs256(res) == quot_abs);
+    Assert(res == 0 || (res < 0) == is_negative);
+    Assert(Abs256(res) == quot_abs);
 
     // Verify the behavior of FeeFrac::MulFallback + FeeFrac::DivFallback.
     auto res_fallback = FeeFrac::DivFallback(FeeFrac::MulFallback(mul64, mul32), div, round_down);
-    assert(res == res_fallback);
+    Assert(res == res_fallback);
 
     // Compare approximately with floating-point.
     long double expect = round_down ? std::floor(static_cast<long double>(mul32) * mul64 / div)
                                     : std::ceil(static_cast<long double>(mul32) * mul64 / div);
     // Expect to be accurate within 50 bits of precision, +- 1 sat.
     if (expect == 0.0L) {
-        assert(res >= -1 && res <= 1);
+        Assert(res >= -1 && res <= 1);
     } else if (expect > 0.0L) {
-        assert(res >= expect * 0.999999999999999L - 1.0L);
-        assert(res <= expect * 1.000000000000001L + 1.0L);
+        Assert(res >= expect * 0.999999999999999L - 1.0L);
+        Assert(res <= expect * 1.000000000000001L + 1.0L);
     } else {
-        assert(res >= expect * 1.000000000000001L - 1.0L);
-        assert(res <= expect * 0.999999999999999L + 1.0L);
+        Assert(res >= expect * 1.000000000000001L - 1.0L);
+        Assert(res <= expect * 0.999999999999999L + 1.0L);
     }
 
     // Verify the behavior of FeeFrac::Evaluate{Down,Up}.
@@ -217,7 +219,7 @@ FUZZ_TARGET(feefrac_mul_div)
         auto res_fee = round_down ?
             FeeFrac{mul64, div}.EvaluateFeeDown(mul32) :
             FeeFrac{mul64, div}.EvaluateFeeUp(mul32);
-        assert(res == res_fee);
+        Assert(res == res_fee);
 
         // Compare approximately with CFeeRate.
         if (mul64 < std::numeric_limits<int64_t>::max() / 1000 &&
@@ -226,8 +228,8 @@ FUZZ_TARGET(feefrac_mul_div)
             CFeeRate feerate(mul64, div);
             CAmount feerate_fee{feerate.GetFee(mul32)};
             auto allowed_gap = static_cast<int64_t>(mul32 / 1000 + 3 + round_down);
-            assert(feerate_fee - res_fee >= -allowed_gap);
-            assert(feerate_fee - res_fee <= allowed_gap);
+            Assert(feerate_fee - res_fee >= -allowed_gap);
+            Assert(feerate_fee - res_fee <= allowed_gap);
         }
     }
 }

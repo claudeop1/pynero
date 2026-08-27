@@ -98,7 +98,7 @@ static void AddrManSelect(benchmark::Bench& bench)
 
     bench.run([&] {
         const auto& address = addrman.Select();
-        assert(address.first.GetPort() > 0);
+        Assert(address.first.GetPort() > 0);
     });
 }
 
@@ -145,7 +145,7 @@ static void AddrManGetAddr(benchmark::Bench& bench)
 
     bench.run([&] {
         const auto& addresses = addrman.GetAddr(/*max_addresses=*/2500, /*max_pct=*/23, /*network=*/std::nullopt);
-        assert(addresses.size() > 0);
+        Assert(addresses.size() > 0);
     });
 }
 

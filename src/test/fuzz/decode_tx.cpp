@@ -5,9 +5,9 @@
 #include <core_io.h>
 #include <primitives/transaction.h>
 #include <test/fuzz/fuzz.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 
-#include <cassert>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -21,12 +21,12 @@ FUZZ_TARGET(decode_tx)
     const bool result_try_witness_and_maybe_no_witness = DecodeHexTx(mtx, tx_hex, true, true);
     CMutableTransaction no_witness_mtx;
     const bool result_try_no_witness = DecodeHexTx(no_witness_mtx, tx_hex, true, false);
-    assert(!result_none);
+    Assert(!result_none);
     if (result_try_witness_and_maybe_no_witness) {
-        assert(result_try_no_witness || result_try_witness);
+        Assert(result_try_no_witness || result_try_witness);
     }
     if (result_try_no_witness) {
-        assert(!no_witness_mtx.HasWitness());
-        assert(result_try_witness_and_maybe_no_witness);
+        Assert(!no_witness_mtx.HasWitness());
+        Assert(result_try_witness_and_maybe_no_witness);
     }
 }

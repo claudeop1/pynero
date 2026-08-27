@@ -8,6 +8,7 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/check.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -70,7 +71,7 @@ FUZZ_TARGET(crypto_aeadchacha20poly1305)
         std::vector<std::byte> keystream(length);
         aead.Keystream(nonce, keystream);
         for (size_t i = 0; i < length; ++i) {
-            assert((plain[i] ^ keystream[i]) == cipher[i]);
+            Assert((plain[i] ^ keystream[i]) == cipher[i]);
         }
 
         std::vector<std::byte> decrypted_contents(length);
@@ -84,7 +85,7 @@ FUZZ_TARGET(crypto_aeadchacha20poly1305)
 
         AEADChaCha20Poly1305 bad_aead(bad_key);
         ok = bad_aead.Decrypt(cipher, aad, nonce, decrypted_contents);
-        assert(!ok);
+        Assert(!ok);
 
         // Optionally damage 1 bit in either the cipher (corresponding to a change in transit)
         // or the aad (to make sure that decryption will fail if the AAD mismatches).
@@ -107,9 +108,9 @@ FUZZ_TARGET(crypto_aeadchacha20poly1305)
         }
 
         // Decryption *must* fail if the packet was damaged, and succeed if it wasn't.
-        assert(!ok == damage);
+        Assert(!ok == damage);
         if (!ok) break;
-        assert(decrypted_contents == plain);
+        Assert(decrypted_contents == plain);
     }
 }
 
@@ -167,7 +168,7 @@ FUZZ_TARGET(crypto_fschacha20poly1305)
         FSChaCha20Poly1305 bad_fs_aead(bad_key, rekey_interval);
         crypt_till_rekey(bad_fs_aead, rekey_interval, false);
         ok = bad_fs_aead.Decrypt(cipher, aad, decrypted_contents);
-        assert(!ok);
+        Assert(!ok);
 
         // Optionally damage 1 bit in either the cipher (corresponding to a change in transit)
         // or the aad (to make sure that decryption will fail if the AAD mismatches).
@@ -191,8 +192,8 @@ FUZZ_TARGET(crypto_fschacha20poly1305)
         }
 
         // Decryption *must* fail if the packet was damaged, and succeed if it wasn't.
-        assert(!ok == damage);
+        Assert(!ok == damage);
         if (!ok) break;
-        assert(decrypted_contents == plain);
+        Assert(decrypted_contents == plain);
     }
 }

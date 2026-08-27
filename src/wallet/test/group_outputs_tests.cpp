@@ -3,7 +3,7 @@
 // file COPYING or https://www.opensource.org/licenses/mit-license.php.
 
 #include <test/util/setup_common.h>
-
+#include <util/check.h>
 #include <wallet/coinselection.h>
 #include <wallet/spend.h>
 #include <wallet/test/util.h>
@@ -42,7 +42,7 @@ static void addCoin(CoinsResult& coins,
     const auto txid{tx.GetHash()};
     LOCK(wallet.cs_wallet);
     auto ret = wallet.mapWallet.emplace(std::piecewise_construct, std::forward_as_tuple(txid), std::forward_as_tuple(MakeTransactionRef(std::move(tx)), TxStateInactive{}));
-    assert(ret.second);
+    Assert(ret.second);
     CWalletTx& wtx = (*ret.first).second;
     const auto& txout = wtx.GetTx()->vout.at(0);
     coins.Add(*Assert(OutputTypeFromDestination(dest)),

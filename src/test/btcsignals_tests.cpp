@@ -4,6 +4,7 @@
 
 #include <test/util/setup_common.h>
 #include <util/btcsignals.h>
+#include <util/check.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -131,8 +132,8 @@ BOOST_AUTO_TEST_CASE(thread_safety)
         // Because these calls are purposely happening on both threads at the
         // same time, these must be asserts rather than BOOST_CHECKs to prevent
         // a race inside of BOOST_CHECK itself (writing to the log).
-        assert(!sig0.empty());
-        assert(conn0.connected());
+        Assert(!sig0.empty());
+        Assert(conn0.connected());
     });
 
     std::thread extra_increment_injector([&conn0, &sig0, &val_non_det] {

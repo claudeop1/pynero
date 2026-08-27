@@ -8,6 +8,7 @@
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <util/byte_units.h>
+#include <util/check.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -231,7 +232,7 @@ void test_cache_erase_parallel(size_t bytes)
             size_t end = ntodo*(x+1);
             for (uint32_t i = start; i < end; ++i) {
                 bool contains = set.contains(hashes[i], true);
-                assert(contains);
+                Assert(contains);
             }
         });
 

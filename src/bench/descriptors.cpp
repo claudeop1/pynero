@@ -30,7 +30,7 @@ static void ExpandDescriptor(benchmark::Bench& bench)
         for (int i = range.first; i <= range.second; ++i) {
             std::vector<CScript> scripts;
             bool success = descs[0]->Expand(i, provider, scripts, provider);
-            assert(success);
+            Assert(success);
         }
     });
 }

@@ -57,8 +57,8 @@ static void WalletCreate(benchmark::Bench& bench, bool encrypted)
     }};
     bench.setup(cleanup).run([&] {
         wallet = CreateWallet(context, wallet_name, /*load_on_start=*/std::nullopt, options, status, error_string, warnings);
-        assert(status == DatabaseStatus::SUCCESS);
-        assert(wallet != nullptr);
+        Assert(status == DatabaseStatus::SUCCESS);
+        Assert(wallet != nullptr);
     });
     cleanup();
 }

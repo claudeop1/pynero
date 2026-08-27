@@ -129,13 +129,13 @@ FUZZ_TARGET(scriptpubkeyman, .init = initialize_spkm)
             [&] {
                 const CScript script{ConsumeScript(fuzzed_data_provider)};
                 if (spk_manager->IsMine(script)) {
-                    assert(spk_manager->GetScriptPubKeys().contains(script));
+                    Assert(spk_manager->GetScriptPubKeys().contains(script));
                 }
             },
             [&] {
                 auto spks{spk_manager->GetScriptPubKeys()};
                 for (const CScript& spk : spks) {
-                    assert(spk_manager->IsMine(spk));
+                    Assert(spk_manager->IsMine(spk));
                     CTxDestination dest;
                     bool extract_dest{ExtractDestination(spk, dest)};
                     if (extract_dest) {
@@ -164,8 +164,8 @@ FUZZ_TARGET(scriptpubkeyman, .init = initialize_spkm)
                     if (output_type.has_value()) {
                         auto dest{spk_manager->GetNewDestination(*output_type)};
                         if (dest) {
-                            assert(IsValidDestination(*dest));
-                            assert(spk_manager->IsHDEnabled());
+                            Assert(IsValidDestination(*dest));
+                            Assert(spk_manager->IsHDEnabled());
                         }
                     }
                 }
@@ -339,18 +339,18 @@ FUZZ_TARGET(spkm_migration, .init = initialize_spkm_migration)
     }
 
     auto result{legacy_data.MigrateToDescriptor()};
-    assert(result);
+    Assert(result);
     if ((add_hd_chain && version >= CHDChain::VERSION_HD_CHAIN_SPLIT) || (!add_hd_chain && add_inactive_hd_chain)) {
         added_chains *= 2;
     }
     size_t added_size{keys.size() + added_chains};
     if (added_script > 0) {
-        assert(result->desc_spkms.size() >= added_size);
+        Assert(result->desc_spkms.size() >= added_size);
     } else {
-        assert(result->desc_spkms.size() == added_size);
+        Assert(result->desc_spkms.size() == added_size);
     }
-    if (watch_only) assert(!result->watch_descs.empty());
-    if (!result->solvable_descs.empty()) assert(added_script > 0);
+    if (watch_only) Assert(!result->watch_descs.empty());
+    if (!result->solvable_descs.empty()) Assert(added_script > 0);
 }
 
 } // namespace

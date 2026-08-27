@@ -5,8 +5,8 @@
 
 #ifndef BITCOIN_TEST_SCRIPTNUM10_H
 #define BITCOIN_TEST_SCRIPTNUM10_H
+#include <util/check.h>
 
-#include <cassert>
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
@@ -76,7 +76,7 @@ public:
 
     inline CScriptNum10 operator-()                         const
     {
-        assert(m_value != std::numeric_limits<int64_t>::min());
+        Assert(m_value != std::numeric_limits<int64_t>::min());
         return CScriptNum10(-m_value);
     }
 
@@ -88,7 +88,7 @@ public:
 
     inline CScriptNum10& operator+=( const int64_t& rhs)
     {
-        assert(rhs == 0 || (rhs > 0 && m_value <= std::numeric_limits<int64_t>::max() - rhs) ||
+        Assert(rhs == 0 || (rhs > 0 && m_value <= std::numeric_limits<int64_t>::max() - rhs) ||
                            (rhs < 0 && m_value >= std::numeric_limits<int64_t>::min() - rhs));
         m_value += rhs;
         return *this;
@@ -96,7 +96,7 @@ public:
 
     inline CScriptNum10& operator-=( const int64_t& rhs)
     {
-        assert(rhs == 0 || (rhs > 0 && m_value >= std::numeric_limits<int64_t>::min() + rhs) ||
+        Assert(rhs == 0 || (rhs > 0 && m_value >= std::numeric_limits<int64_t>::min() + rhs) ||
                            (rhs < 0 && m_value <= std::numeric_limits<int64_t>::max() + rhs));
         m_value -= rhs;
         return *this;

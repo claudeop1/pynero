@@ -6,9 +6,9 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/check.h>
 #include <util/serfloat.h>
 
-#include <cassert>
 #include <cmath>
 #include <limits>
 #include <optional>
@@ -52,11 +52,11 @@ FUZZ_TARGET(float)
             if (!std::isnan(d)) {
                 uint64_t encoded_in_memory;
                 std::copy((const unsigned char*)&d, (const unsigned char*)(&d + 1), (unsigned char*)&encoded_in_memory);
-                assert(encoded_in_memory == encoded);
+                Assert(encoded_in_memory == encoded);
             }
         }
         double d_deserialized = DecodeDouble(encoded);
-        assert(std::isnan(d) == std::isnan(d_deserialized));
-        assert(std::isnan(d) || d == d_deserialized);
+        Assert(std::isnan(d) == std::isnan(d_deserialized));
+        Assert(std::isnan(d) || d == d_deserialized);
     }
 }

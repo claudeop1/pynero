@@ -8,6 +8,7 @@
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <util/chaintype.h>
+#include <util/check.h>
 #include <util/time.h>
 
 #include <boost/test/unit_test.hpp>
@@ -329,7 +330,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_FrozenCleanup)
         std::vector<FrozenCleanupCheck> vChecks(1);
         control.Add(std::move(vChecks));
         auto result = control.Complete(); // Hangs here
-        assert(!result);
+        Assert(!result);
     });
     {
         std::unique_lock<std::mutex> l(FrozenCleanupCheck::m);

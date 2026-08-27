@@ -6,8 +6,8 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/check.h>
 
-#include <cassert>
 #include <cstdint>
 #include <vector>
 
@@ -25,6 +25,6 @@ FUZZ_TARGET(crypto_aes256)
         encrypt.Encrypt(ciphertext.data(), plaintext.data());
         std::vector<uint8_t> decrypted_plaintext(AES_BLOCKSIZE);
         decrypt.Decrypt(decrypted_plaintext.data(), ciphertext.data());
-        assert(decrypted_plaintext == plaintext);
+        Assert(decrypted_plaintext == plaintext);
     }
 }

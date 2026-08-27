@@ -226,12 +226,12 @@ void MockMempoolMinFee(const CFeeRate& target_feerate, CTxMemPool& mempool)
 {
     LOCK2(cs_main, mempool.cs);
     // Transactions in the mempool will affect the new minimum feerate.
-    assert(mempool.size() == 0);
+    Assert(mempool.size() == 0);
     // The target feerate cannot be too low...
     // ...otherwise the transaction's feerate will need to be negative.
-    assert(target_feerate > mempool.m_opts.incremental_relay_feerate);
+    Assert(target_feerate > mempool.m_opts.incremental_relay_feerate);
     // ...otherwise this is not meaningful. The feerate policy uses the maximum of both feerates.
-    assert(target_feerate > mempool.m_opts.min_relay_feerate);
+    Assert(target_feerate > mempool.m_opts.min_relay_feerate);
 
     // Manually create an invalid transaction. Manually set the fee in the CTxMemPoolEntry to
     // achieve the exact target feerate.
@@ -254,5 +254,5 @@ void MockMempoolMinFee(const CFeeRate& target_feerate, CTxMemPool& mempool)
         changeset->Apply();
     }
     mempool.TrimToSize(0);
-    assert(mempool.GetMinFee() == target_feerate);
+    Assert(mempool.GetMinFee() == target_feerate);
 }

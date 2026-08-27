@@ -2,10 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <test/data/tx_invalid.json.h>
-#include <test/data/tx_valid.json.h>
-#include <test/util/setup_common.h>
-
 #include <checkqueue.h>
 #include <clientversion.h>
 #include <consensus/amount.h>
@@ -26,22 +22,25 @@
 #include <script/signingprovider.h>
 #include <script/solver.h>
 #include <streams.h>
+#include <test/data/tx_invalid.json.h>
+#include <test/data/tx_valid.json.h>
 #include <test/util/common.h>
 #include <test/util/json.h>
 #include <test/util/random.h>
 #include <test/util/script.h>
+#include <test/util/setup_common.h>
 #include <test/util/transaction_utils.h>
+#include <univalue.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <validation.h>
 
+#include <boost/test/unit_test.hpp>
+
 #include <functional>
 #include <map>
 #include <string>
-
-#include <boost/test/unit_test.hpp>
-
-#include <univalue.h>
 
 using namespace util::hex_literals;
 using util::SplitString;
@@ -428,10 +427,10 @@ static void CreateCreditAndSpend(const FillableSigningProvider& keystore, const 
     DataStream ssout;
     ssout << TX_WITH_WITNESS(outputm);
     ssout >> TX_WITH_WITNESS(output);
-    assert(output->vin.size() == 1);
-    assert(output->vin[0] == outputm.vin[0]);
-    assert(output->vout.size() == 1);
-    assert(output->vout[0] == outputm.vout[0]);
+    Assert(output->vin.size() == 1);
+    Assert(output->vin[0] == outputm.vin[0]);
+    Assert(output->vout.size() == 1);
+    Assert(output->vout[0] == outputm.vout[0]);
 
     CMutableTransaction inputm;
     inputm.version = 1;
@@ -443,15 +442,15 @@ static void CreateCreditAndSpend(const FillableSigningProvider& keystore, const 
     inputm.vout[0].scriptPubKey = CScript();
     SignatureData empty;
     bool ret = SignSignature(keystore, *output, inputm, 0, SIGHASH_ALL, empty);
-    assert(ret == success);
+    Assert(ret == success);
     DataStream ssin;
     ssin << TX_WITH_WITNESS(inputm);
     ssin >> TX_WITH_WITNESS(input);
-    assert(input.vin.size() == 1);
-    assert(input.vin[0] == inputm.vin[0]);
-    assert(input.vout.size() == 1);
-    assert(input.vout[0] == inputm.vout[0]);
-    assert(input.vin[0].scriptWitness.stack == inputm.vin[0].scriptWitness.stack);
+    Assert(input.vin.size() == 1);
+    Assert(input.vin[0] == inputm.vin[0]);
+    Assert(input.vout.size() == 1);
+    Assert(input.vout[0] == inputm.vout[0]);
+    Assert(input.vin[0].scriptWitness.stack == inputm.vin[0].scriptWitness.stack);
 }
 
 static void CheckWithFlag(const CTransactionRef& output, const CMutableTransaction& input, script_verify_flags flags, bool success)
@@ -459,7 +458,7 @@ static void CheckWithFlag(const CTransactionRef& output, const CMutableTransacti
     ScriptError error;
     CTransaction inputi(input);
     bool ret = VerifyScript(inputi.vin[0].scriptSig, output->vout[0].scriptPubKey, &inputi.vin[0].scriptWitness, flags, TransactionSignatureChecker(&inputi, 0, output->vout[0].nValue, MissingDataBehavior::ASSERT_FAIL), &error);
-    assert(ret == success);
+    Assert(ret == success);
 }
 
 static CScript PushAll(const std::vector<valtype>& values)
@@ -483,7 +482,7 @@ static void ReplaceRedeemScript(CScript& script, const CScript& redeemScript)
 {
     std::vector<valtype> stack;
     EvalScript(stack, script, SCRIPT_VERIFY_STRICTENC, BaseSignatureChecker(), SigVersion::BASE);
-    assert(stack.size() > 0);
+    Assert(stack.size() > 0);
     stack.back() = std::vector<unsigned char>(redeemScript.begin(), redeemScript.end());
     script = PushAll(stack);
 }
@@ -525,7 +524,7 @@ BOOST_AUTO_TEST_CASE(test_big_witness_transaction)
     for(uint32_t i = 0; i < mtx.vin.size(); i++) {
         SignatureData empty;
         bool hashSigned = SignSignature(keystore, scriptPubKey, mtx, i, 1000, sigHashes.at(i % sigHashes.size()), empty);
-        assert(hashSigned);
+        Assert(hashSigned);
     }
 
     DataStream ssout;
@@ -556,7 +555,7 @@ BOOST_AUTO_TEST_CASE(test_big_witness_transaction)
     }
 
     bool controlCheck = !control.Complete().has_value();
-    assert(controlCheck);
+    Assert(controlCheck);
 }
 
 SignatureData CombineSignatures(const CMutableTransaction& input1, const CMutableTransaction& input2, const CTransactionRef tx)
@@ -948,7 +947,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard)
     g_bare_multi = DEFAULT_PERMIT_BAREMULTISIG;
 
     // Add dust outputs up to allowed maximum
-    assert(t.vout.size() == 1);
+    Assert(t.vout.size() == 1);
     t.vout.insert(t.vout.end(), MAX_DUST_OUTPUTS_PER_TX, {0, t.vout[0].scriptPubKey});
 
     // Check compressed P2PK outputs dust threshold (must have leading 02 or 03)

@@ -50,7 +50,7 @@ static void CCoinsCaching(benchmark::Bench& bench)
     // Benchmark.
     const CTransaction tx_1(t1);
     bench.run([&] {
-        assert(ValidateInputsStandardness(tx_1, coins).IsValid());
+        Assert(ValidateInputsStandardness(tx_1, coins).IsValid());
     });
 }
 

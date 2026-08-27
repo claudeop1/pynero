@@ -39,7 +39,7 @@ static size_t ExpectedWitnessStackSize(ScriptType script_type)
     case ScriptType::P2TR_KeyPath: return 1; // [signature]
     case ScriptType::P2TR_ScriptPath: return 3; // [signature, tapscript, control block]
     } // no default case, so the compiler can warn about missing cases
-    assert(false);
+    Assert(false);
 }
 
 // Microbenchmark for verification of standard scripts.
@@ -71,7 +71,7 @@ static void VerifyScriptBench(benchmark::Bench& bench, ScriptType script_type)
             keystore.tr_trees.emplace(output, builder);
             return output;
         } // no default case, so the compiler can warn about missing cases
-        assert(false);
+        Assert(false);
     }()};
     const CMutableTransaction& txCredit = BuildCreditingTransaction(GetScriptForDestination(dest), 1);
     CMutableTransaction txSpend = BuildSpendingTransaction(/*scriptSig=*/{}, /*scriptWitness=*/{}, CTransaction(txCredit));
@@ -84,9 +84,9 @@ static void VerifyScriptBench(benchmark::Bench& bench, ScriptType script_type)
         };
         std::map<int, bilingual_str> input_errors;
         bool complete = SignTransaction(txSpend, &keystore, coins, {.sighash_type = SIGHASH_ALL}, input_errors);
-        assert(complete);
+        Assert(complete);
         // Weak sanity check on witness data to ensure we produced the intended spending type
-        assert(txSpend.vin[0].scriptWitness.stack.size() == ExpectedWitnessStackSize(script_type));
+        Assert(txSpend.vin[0].scriptWitness.stack.size() == ExpectedWitnessStackSize(script_type));
         txdata.Init(txSpend, /*spent_outputs=*/{txCredit.vout[0]});
     }
 
@@ -100,8 +100,8 @@ static void VerifyScriptBench(benchmark::Bench& bench, ScriptType script_type)
             STANDARD_SCRIPT_VERIFY_FLAGS,
             MutableTransactionSignatureChecker(&txSpend, 0, txCredit.vout[0].nValue, txdata, MissingDataBehavior::ASSERT_FAIL),
             &err);
-        assert(err == SCRIPT_ERR_OK);
-        assert(success);
+        Assert(err == SCRIPT_ERR_OK);
+        Assert(success);
     });
 }
 
@@ -127,7 +127,7 @@ static void VerifyNestedIfScript(benchmark::Bench& bench)
         .run([&] {
             ScriptError error;
             const bool ret{EvalScript(stack, script, /*flags=*/0, BaseSignatureChecker(), SigVersion::BASE, &error)};
-            assert(ret && error == SCRIPT_ERR_OK);
+            Assert(ret && error == SCRIPT_ERR_OK);
         });
 }
 

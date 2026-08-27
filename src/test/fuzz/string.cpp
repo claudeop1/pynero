@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <util/string.h>
+
 #include <blockfilter.h>
 #include <clientversion.h>
 #include <common/args.h>
@@ -23,12 +25,11 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/check.h>
 #include <util/fees.h>
 #include <util/strencodings.h>
-#include <util/string.h>
 #include <util/translation.h>
 
-#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <ios>
@@ -113,11 +114,11 @@ FUZZ_TARGET(string)
         data_stream << random_string_1;
         try {
             data_stream >> limited_string;
-            assert(data_stream.empty());
-            assert(s.size() <= random_string_1.size());
-            assert(s.size() <= 10);
+            Assert(data_stream.empty());
+            Assert(s.size() <= random_string_1.size());
+            Assert(s.size() <= 10);
             if (!random_string_1.empty()) {
-                assert(!s.empty());
+                Assert(!s.empty());
             }
         } catch (const std::ios_base::failure&) {
         }
@@ -128,8 +129,8 @@ FUZZ_TARGET(string)
         data_stream << limited_string;
         std::string deserialized_string;
         data_stream >> deserialized_string;
-        assert(data_stream.empty());
-        assert(deserialized_string == random_string_1);
+        Assert(data_stream.empty());
+        Assert(deserialized_string == random_string_1);
     }
     {
         int64_t amount_out;
@@ -137,9 +138,9 @@ FUZZ_TARGET(string)
     }
     {
         const auto single_split{SplitString(random_string_1, fuzzed_data_provider.ConsumeIntegral<char>())};
-        assert(single_split.size() >= 1);
+        Assert(single_split.size() >= 1);
         const auto any_split{SplitString(random_string_1, random_string_2)};
-        assert(any_split.size() >= 1);
+        Assert(any_split.size() >= 1);
     }
     {
         (void)Untranslated(random_string_1);
